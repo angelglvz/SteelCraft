@@ -88,13 +88,19 @@ class TimestampMixin:
 
 # ---------------------------------------------------------------- usuarios
 class User(TimestampMixin, Base):
+    """Cuenta. Se registra con email + contraseña; username y birth_date se completan después.
+
+    Los datos de perfil ampliados (objetivo, experiencia...) irán en una tabla 1:1 aparte
+    (user_profile) cuando exista el formulario de perfil; no forman parte de la v1.
+    """
     __tablename__ = "app_user"  # "user" es palabra reservada en PostgreSQL
 
     id: Mapped[uuid.UUID] = mapped_column(
         Uuid, primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"))
-    username: Mapped[str] = mapped_column(String(32), nullable=False)
+    email: Mapped[str] = mapped_column(String(254), nullable=False, unique=True)  # siempre en minúsculas
     password_hash: Mapped[str] = mapped_column(Text, nullable=False)  # Argon2id, nunca la contraseña
-    birth_date: Mapped[date] = mapped_column(Date, nullable=False)    # la edad se calcula, no se guarda
+    username: Mapped[str | None] = mapped_column(String(32))          # opcional: se elige más adelante
+    birth_date: Mapped[date | None] = mapped_column(Date)             # opcional; la edad se calcula, no se guarda
     avatar_key: Mapped[str | None] = mapped_column(String(255))       # clave en el almacén de archivos
     role: Mapped[UserRole] = mapped_column(
         _enum(UserRole, "user_role"), nullable=False, default=UserRole.USER,
@@ -107,12 +113,14 @@ class User(TimestampMixin, Base):
         back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
 
     __table_args__ = (
-        CheckConstraint("char_length(username) >= 3", name="username_min_length"),
+        CheckConstraint("email = lower(email)", name="email_lowercase"),
+        CheckConstraint(r"email ~ '^[^@\s]+@[^@\s]+$'", name="email_shape"),
+        CheckConstraint(r"username ~ '^[A-Za-z0-9_]{3,32}$'", name="username_format"),
         _in_check("role", UserRole),
     )
 
 
-# username único sin distinguir mayúsculas
+# username único sin distinguir mayúsculas (varios NULL permitidos: aún sin elegir)
 Index("uq_app_user_username_lower", func.lower(User.username), unique=True)
 
 
