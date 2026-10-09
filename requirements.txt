@@ -3,3 +3,4 @@ alembic
 psycopg[binary]
 beautifulsoup4
 python-dotenv
+argon2-cffi
