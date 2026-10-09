@@ -4,3 +4,7 @@ psycopg[binary]
 beautifulsoup4
 python-dotenv
 argon2-cffi
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+pydantic-settings>=2.2.0
+python-jose[cryptography]>=3.3.0
