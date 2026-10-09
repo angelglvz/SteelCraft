@@ -1,7 +1,9 @@
 """SteelCraft - Programa 1 (núcleo): modelo de datos.
 
-SQLAlchemy 2.x + PostgreSQL. Los enums se guardan como VARCHAR + CHECK (no como
-ENUM nativo de PostgreSQL) para que añadir un valor sea una migración trivial.
+SQLAlchemy 2.x + PostgreSQL. Los enums se guardan como VARCHAR + CHECK explícito (no como
+ENUM nativo de PostgreSQL) para que añadir un valor sea una migración trivial. El CHECK se
+declara a mano con _in_check() porque el generado por SQLAlchemy (create_constraint=True)
+se duplica con las migraciones de Alembic cuando hay naming_convention.
 
 Convenciones
 - Tablas de usuario (app_user, body_measurement, workout, workout_exercise, set_log): PK UUID.
@@ -66,9 +68,15 @@ class DataSource(str, enum.Enum):
 
 def _enum(py_enum: type[enum.Enum], name: str) -> Enum:
     return Enum(
-        py_enum, name=name, native_enum=False, create_constraint=True, length=20,
+        py_enum, name=name, native_enum=False, create_constraint=False, length=20,
         values_callable=lambda e: [m.value for m in e],
     )
+
+
+def _in_check(column: str, py_enum: type[enum.Enum]) -> CheckConstraint:
+    """CHECK explícito que limita una columna a los valores de un enum."""
+    values = ", ".join(f"'{m.value}'" for m in py_enum)
+    return CheckConstraint(f"{column} IN ({values})", name=f"{column}_valid")
 
 
 class TimestampMixin:
@@ -100,6 +108,7 @@ class User(TimestampMixin, Base):
 
     __table_args__ = (
         CheckConstraint("char_length(username) >= 3", name="username_min_length"),
+        _in_check("role", UserRole),
     )
 
 
@@ -134,6 +143,7 @@ class BodyMeasurement(Base):
         CheckConstraint(
             "weight_kg IS NOT NULL OR height_cm IS NOT NULL OR body_fat_pct IS NOT NULL",
             name="at_least_one_value"),
+        _in_check("source", DataSource),
     )
 
 
@@ -186,6 +196,8 @@ class Exercise(Base):
     muscles: Mapped[list[ExerciseMuscle]] = relationship(
         back_populates="exercise", cascade="all, delete-orphan", passive_deletes=True)
 
+    __table_args__ = (_in_check("load_type", LoadType),)
+
 
 class ExerciseAlias(Base):
     """Variantes de escritura de un ejercicio (las usa el importador). Alias único global."""
@@ -213,6 +225,8 @@ class ExerciseMuscle(Base):
 
     exercise: Mapped[Exercise] = relationship(back_populates="muscles")
     muscle: Mapped[Muscle] = relationship()
+
+    __table_args__ = (_in_check("role", MuscleRole),)
 
 
 # como máximo un músculo principal por ejercicio ("al menos uno" lo valida la API)
@@ -248,6 +262,7 @@ class Workout(Base):
         CheckConstraint(
             "started_at IS NULL OR ended_at IS NULL OR ended_at >= started_at",
             name="ended_after_started"),
+        _in_check("source", DataSource),
     )
 
 
