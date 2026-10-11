@@ -25,6 +25,7 @@ Gestión del catálogo maestro de grupos musculares.
 | :--- | :--- | :--- | :--- |
 | `GET` | `/muscles/` | Lista todos los músculos disponibles en el catálogo. | Sí (Bearer) |
 | `POST` | `/muscles/` | Añade un nuevo músculo al catálogo. | Sí (Admin/Bearer) |
+| `DELETE` | `/muscles/{id}` | Elimina un músculo del catálogo. | Sí (Admin/Bearer) |
 
 ---
 
