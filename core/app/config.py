@@ -8,8 +8,8 @@ ENV_FILE_PATH = BASE_DIR / ".env"
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "SteelCraft API"
-    VERSION: str = "0.1.0"
-    API_V1_STR: str = "/api/v1"
+    VERSION: str 
+    API_V1_STR: str
 
     # Base de datos
     DATABASE_URL: str
