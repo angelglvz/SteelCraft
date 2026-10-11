@@ -2,10 +2,18 @@
 
 from fastapi import FastAPI
 from app.config import settings
+#auth
+from app.api.auth import router as auth_router
+#muscle
+from app.api.muscles import router as muscle_router
+#exercises
+from app.api.exercises import router as exercises_router
+from app.api.muscles import router as muscles_router
 from app.api.auth import router as auth_router
 
 from app.database import engine
 from app.models import Base
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -15,7 +23,10 @@ app = FastAPI(
 
 Base.metadata.create_all(bind=engine)
 
+#registro de los APIs
 app.include_router(auth_router, prefix=settings.API_V1_STR)
+app.include_router(muscle_router, prefix=settings.API_V1_STR)
+app.include_router(exercises_router)
 
 @app.get("/health", tags=["Health"])
 def health_check() -> dict[str, str]:
