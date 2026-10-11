@@ -11,7 +11,7 @@ export const authService = {
     formData.append('username', email); // FastAPI espera el campo 'username' por defecto en OAuth2
     formData.append('password', password);
 
-    const response = await api.post<Token>('/auth/token', formData, {
+    const response = await api.post<Token>('/auth/login', formData, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
