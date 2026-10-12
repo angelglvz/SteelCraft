@@ -5,6 +5,8 @@ import { authService } from '../services/authService';
 interface AuthContextType {
   user: User | null;
   token: string | null;
+  role: string | null;
+  isAdmin: boolean;
   login: (email: string, pass: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -15,8 +17,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<string | null>(localStorage.getItem('role'));
+  const isAdmin = role === 'admin' || role === 'ADMIN';
 
-  // Si hay token guardado, podríamos recuperar el usuario o mantenerlo en memoria
   useEffect(() => {
     if (token) {
       localStorage.setItem('token', token);
@@ -25,11 +28,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [token]);
 
+  useEffect(() => {
+    if (role) {
+      localStorage.setItem('role', role);
+    } else {
+      localStorage.removeItem('role');
+    }
+  }, [role]);
+
   const handleLogin = async (email: string, pass: string) => {
     try {
       const data = await authService.login(email, pass);
       setToken(data.access_token);
-      // Aquí podrías desencadenar una llamada para obtener el usuario actual si tu API lo permite, ej: authService.getMe()
+      // Si tu backend devuelve el rol en el login (ej: data.role), guárdalo así:
+      if (data.role) {
+        setRole(data.role);
+        localStorage.setItem('role', data.role);
+      }
     } catch (error) {
       console.error('Error en el login:', error);
       throw error;
@@ -39,7 +54,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const handleLogout = () => {
     setToken(null);
     setUser(null);
+    setRole(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('role');
   };
 
   return (
@@ -47,6 +64,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         token,
+        role,
+        isAdmin,
         login: handleLogin,
         logout: handleLogout,
         isAuthenticated: !!token,

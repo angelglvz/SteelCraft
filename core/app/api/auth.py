@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, UserRole
 from app.schemas import Token, UserCreate, UserResponse
-from app.security import create_access_token, get_password_hash, verify_password
+from app.security import create_access_token, get_password_hash, verify_password, get_current_active_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -67,4 +67,13 @@ def login(
         )
 
     access_token = create_access_token(subject=str(user.id))
-    return Token(access_token=access_token)
+    return Token(access_token=access_token, role=user.role.value)
+
+@router.post("/logout")
+def logout(current_user: Annotated[User, Depends(get_current_active_user)]):
+    """
+    Cierra la sesión del usuario actual.
+    Invalida el token o confirma el cierre de sesión desde el cliente.
+    """
+    # Si implementas una lista negra de tokens en base de datos o Redis, la registrarías aquí.
+    return {"message": "Successfully logged out"}

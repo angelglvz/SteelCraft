@@ -3,6 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
+import { MusclesView } from './pages/MusclesView';
+import { AdminRoute } from './components/AdminRoute'; 
+import { ProfileView } from './pages/ProfileView';
+
 
 // Componente temporal para el Dashboard principal mientras creamos las vistas de entrenamientos/músculos
 const Dashboard: React.FC = () => {
@@ -25,7 +29,10 @@ export function App() {
           {/* Rutas protegidas que requieren autenticación */}
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Dashboard />} />
-            {/* Aquí añadiremos después las rutas de músculos, ejercicios, entrenamientos, etc. */}
+            <Route path="/profile" element={<ProfileView />} />
+            <Route element={<AdminRoute />}>
+              <Route path="/muscles" element={<MusclesView />} />
+            </Route>
           </Route>
 
           {/* Redirección por defecto para cualquier otra ruta no encontrada */}

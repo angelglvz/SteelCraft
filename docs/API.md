@@ -15,6 +15,7 @@ Endpoints encargados de la gestión de usuarios y generación de tokens de acces
 | :--- | :--- | :--- | :--- |
 | `POST` | `/auth/token` | Inicia sesión y devuelve el token JWT Bearer. | No requerida |
 | `POST` | `/auth/register` | Registra un nuevo usuario en el sistema. | No requerida |
+| `POST` | `/auth/logout` | Cierra la sesión del usuario actual validando el token activo. | Sí (Bearer) |
 
 ---
 

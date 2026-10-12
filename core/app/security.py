@@ -9,8 +9,17 @@ from jose import jwt
 
 from app.config import settings
 
+from typing import Annotated
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError
+from sqlalchemy.orm import Session
+from app.database import get_db
+from app.models import User
+
 ph = PasswordHasher()
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifica una contraseña en texto plano contra su hash Argon2id."""
@@ -39,3 +48,35 @@ def create_access_token(subject: str | Any, expires_delta: timedelta | None = No
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
     return encoded_jwt
+
+def get_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[Session, Depends(get_db)]
+) -> User:
+    """Decodifica el token JWT y obtiene el usuario autenticado desde la base de datos."""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    if user is None:
+        raise credentials_exception
+    return user
+
+
+def get_current_active_user(
+    current_user: Annotated[User, Depends(get_current_user)]
+) -> User:
+    """Verifica que el usuario actual autenticado esté activo en el sistema."""
+    if not current_user.is_active:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
+    return current_user

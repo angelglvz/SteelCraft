@@ -8,6 +8,7 @@ export interface User {
 export interface Token {
   access_token: string;
   token_type: string;
+  role?: string;
 }
 
 // --- MÚSCULOS ---
