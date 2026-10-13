@@ -6,15 +6,19 @@ import { Login } from './pages/Login';
 import { MusclesView } from './pages/MusclesView';
 import { AdminRoute } from './components/AdminRoute'; 
 import { ProfileView } from './pages/ProfileView';
-import { ExercisesView } from './pages/ExercisesView'
+import { ExercisesView } from './pages/ExercisesView';
+import { WorkoutsView } from './pages/WorkoutsView'; // O WorkoutsView según tu nombre de archivo
+import { Sidebar } from './components/Sidebar';
+import { Outlet } from 'react-router-dom';
 
-
-// Componente temporal para el Dashboard principal mientras creamos las vistas de entrenamientos/músculos
-const Dashboard: React.FC = () => {
+// Layout principal que incluye el Sidebar lateral y el área de contenido
+const AppLayout: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-8">
-      <h1 className="text-3xl font-bold text-blue-500">Panel Principal - SteelCraft</h1>
-      <p className="text-gray-400 mt-2">¡Bienvenido! Has accedido correctamente a una ruta protegida.</p>
+    <div className="flex min-h-screen bg-gray-950 text-white">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto">
+        <Outlet />
+      </main>
     </div>
   );
 };
@@ -27,20 +31,21 @@ export function App() {
           {/* Ruta pública de Login */}
           <Route path="/login" element={<Login />} />
 
-          {/* Rutas protegidas que requieren autenticación */}
+          {/* Rutas protegidas con el layout del Sidebar */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/profile" element={<ProfileView />} />
-
-            {/* Catálogo de Ejercicios visible para cualquier usuario autenticado */}
-            <Route path="/exercises" element={<ExercisesView />} />
-            
-            <Route element={<AdminRoute />}>
-              <Route path="/muscles" element={<MusclesView />} />
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Navigate to="/workouts" replace />} />
+              <Route path="/workouts" element={<WorkoutsView />} />
+              <Route path="/exercises" element={<ExercisesView />} />
+              <Route path="/profile" element={<ProfileView />} />
+              
+              <Route element={<AdminRoute />}>
+                <Route path="/muscles" element={<MusclesView />} />
+              </Route>
             </Route>
           </Route>
 
-          {/* Redirección por defecto para cualquier otra ruta no encontrada */}
+          {/* Redirección por defecto */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

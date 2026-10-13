@@ -51,22 +51,32 @@ export interface SetLog {
   id?: number;
   set_number: number;
   reps: number;
-  weight: number;
+  weight_kg?: number;
+  weight?: number;
+  extra_kg?: number;
+  assist_kg?: number;
+  rpe?: number;
 }
 
 export interface WorkoutExercise {
   id?: number;
   exercise_id: number;
   exercise?: Exercise;
+  position?: number;
+  notes?: string;
   sets: SetLog[];
 }
 
 export interface Workout {
-  id: number;
-  user_id: number;
-  date: string;
+  id?: string | number;
+  user_id?: string | number;
+  performed_on?: string;
+  date?: string;
   notes?: string;
-  workout_exercises: WorkoutExercise[];
+  source?: 'manual' | 'telegram_import';
+  exercises?: WorkoutExercise[];
+  workout_exercises?: WorkoutExercise[];
+  created_at?: string;
 }
 
 export interface ExerciseCreateInput {
