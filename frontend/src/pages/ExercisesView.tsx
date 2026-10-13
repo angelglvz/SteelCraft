@@ -1,72 +1,78 @@
 import React, { useEffect, useState } from 'react';
 import { exerciseService } from '../services/exerciseService';
-import type { Exercise } from '../types';
+import type { Exercise, Muscle } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { SYSTEM_MUSCLES } from '../enums/muscles';
 
 export const ExercisesView: React.FC = () => {
   const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [muscles] = useState<Muscle[]>(SYSTEM_MUSCLES);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Estados para el formulario de creación (solo administradores)
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [primaryMuscleId, setPrimaryMuscleId] = useState<number>(1);
+  const [selectedMuscleIds, setSelectedMuscleIds] = useState<number[]>([]);
+  
+  // Estado para el buscador de ejercicios
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Obtenemos el rol del usuario desde el contexto de autenticación
   const { role } = useAuth();
   const isAdmin = role === 'admin';
 
   useEffect(() => {
-    const fetchExercises = async () => {
+    const fetchData = async () => {
       try {
-        const data = await exerciseService.getExercises();
-        setExercises(data);
+        const exercisesData = await exerciseService.getExercises();
+        setExercises(exercisesData);
         setError(null);
       } catch (err) {
-        setError('Error al cargar los ejercicios del catálogo.');
+        setError('Error al cargar los datos del catálogo.');
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchExercises();
+    fetchData();
   }, []);
 
   const handleCreateExercise = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (selectedMuscleIds.length === 0) {
+      alert('Debes seleccionar al menos un músculo.');
+      return;
+    }
+
     try {
-      // Usamos 'as unknown as Parameters<typeof exerciseService.createExercise>[0]' para satisfacer el tipado estricto
+      const musclesPayload = selectedMuscleIds.map((mId, index) => ({
+        muscle_id: Number(mId),
+        role: index === 0 ? ('primary' as const) : ('secondary' as const),
+      }));
+
       await exerciseService.createExercise({
         name,
         description,
         slug: name.toLowerCase().replace(/\s+/g, '-'),
         load_type: 'barbell',
         is_active: true,
-        muscles: [
-          {
-            muscle_id: Number(primaryMuscleId),
-            role: 'primary',
-          },
-        ],
+        muscles: musclesPayload,
       } as unknown as Parameters<typeof exerciseService.createExercise>[0]);
 
       setName('');
       setDescription('');
-      setPrimaryMuscleId(1);
+      setSelectedMuscleIds([]);
       
-      // Recargar la lista tras crear
       const data = await exerciseService.getExercises();
       setExercises(data);
     } catch (err) {
-      alert('No se pudo crear el ejercicio. Verifica que tengas permisos de administrador.');
+      alert('No se pudo crear el ejercicio.');
       console.error(err);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('¿Estás seguro de eliminar este ejercicio del catálogo?')) return;
+    if (!window.confirm('¿Estás seguro de eliminar este ejercicio?')) return;
     try {
       await exerciseService.deleteExercise(id);
       setExercises(exercises.filter((ex) => ex.id !== id));
@@ -76,39 +82,46 @@ export const ExercisesView: React.FC = () => {
     }
   };
 
-  // Función auxiliar robusta adaptada a la interfaz con "muscles"
-  const getPrimaryMuscleDisplay = (ex: Exercise) => {
+  const getMusclesDisplay = (ex: Exercise) => {
     if (!ex.muscles || ex.muscles.length === 0) {
-      return 'Sin asignar';
+      return <span className="text-gray-500">Sin asignar</span>;
     }
-    // Buscamos el que tenga rol 'primary', o por defecto tomamos el primero de la lista
-    const primary = ex.muscles.find((m) => m.role === 'primary') || ex.muscles[0];
-    
-    // Si el objeto muscle viene poblado y tiene nombre
-    if (primary && primary.muscle && primary.muscle.name) {
-      return primary.muscle.name;
-    }
-    
-    return 'Sin asignar';
+
+    return (
+      <div className="space-y-1">
+        {ex.muscles.map((m, idx) => {
+          const matchedMuscle = muscles.find(mu => mu.id === m.muscle_id);
+          const muscleName = m.muscle?.name || matchedMuscle?.name || `Músculo #${m.muscle_id}`;
+          const isPrimary = m.role === 'primary';
+          return (
+            <div key={idx} className="text-sm">
+              <span className={`font-medium ${isPrimary ? 'text-indigo-300' : 'text-gray-400'}`}>
+                {muscleName}
+              </span>{' '}
+              <span className="text-xs text-gray-500">
+                ({isPrimary ? 'Principal' : 'Secundario'})
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
+
+  // Filtrar los ejercicios según el término de búsqueda
+  const filteredExercises = exercises.filter((ex) =>
+    ex.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="p-6 max-w-5xl mx-auto text-white">
-      {/* Cabecera adaptativa */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-indigo-400">Catálogo de Ejercicios</h1>
           <p className="text-sm text-gray-400 mt-1">
-            {isAdmin 
-              ? 'Modo Administrador: Puedes añadir o eliminar ejercicios del sistema.' 
-              : 'Consulta la lista de ejercicios disponibles para tus entrenamientos.'}
+            {isAdmin ? 'Modo Administrador' : 'Consulta los ejercicios disponibles'}
           </p>
         </div>
-        {isAdmin && (
-          <span className="bg-amber-500/10 border border-amber-500/30 text-amber-400 px-3 py-1 rounded-full text-xs font-semibold">
-            👑 Admin
-          </span>
-        )}
       </div>
 
       {error && (
@@ -117,11 +130,10 @@ export const ExercisesView: React.FC = () => {
         </div>
       )}
 
-      {/* Formulario de creación (Renderizado condicional estricto para Admin) */}
       {isAdmin && (
         <form onSubmit={handleCreateExercise} className="bg-gray-800 p-6 rounded-lg mb-8 border border-gray-700 shadow-md">
           <h2 className="text-xl font-semibold mb-4 text-indigo-300">Añadir Nuevo Ejercicio</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <input
               type="text"
               placeholder="Nombre del ejercicio"
@@ -137,15 +149,39 @@ export const ExercisesView: React.FC = () => {
               onChange={(e) => setDescription(e.target.value)}
               className="bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
             />
-            <input
-              type="number"
-              placeholder="ID Músculo Principal"
-              value={primaryMuscleId}
-              onChange={(e) => setPrimaryMuscleId(Number(e.target.value))}
-              className="bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
-              required
-            />
           </div>
+
+          <div className="mb-4">
+            <label className="block text-sm text-gray-400 mb-2">
+              Selecciona músculos (El primero seleccionado será el <span className="text-indigo-400 font-semibold">Principal</span>, los siguientes <span className="text-gray-300 font-semibold">Secundarios</span>):
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-gray-900 p-3 rounded border border-gray-700 max-h-40 overflow-y-auto">
+              {muscles.map((muscle) => {
+                const isSelected = selectedMuscleIds.includes(muscle.id);
+                return (
+                  <button
+                    type="button"
+                    key={muscle.id}
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedMuscleIds(selectedMuscleIds.filter(id => id !== muscle.id));
+                      } else {
+                        setSelectedMuscleIds([...selectedMuscleIds, muscle.id]);
+                      }
+                    }}
+                    className={`p-2 rounded text-xs text-left border transition cursor-pointer ${
+                      isSelected 
+                        ? 'bg-indigo-600/30 border-indigo-500 text-white font-semibold' 
+                        : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-750'
+                    }`}
+                  >
+                    {muscle.name} {isSelected && selectedMuscleIds[0] === muscle.id && '👑'}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <button
             type="submit"
             className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded transition cursor-pointer"
@@ -155,7 +191,22 @@ export const ExercisesView: React.FC = () => {
         </form>
       )}
 
-      {/* Tabla de listado */}
+      {/* Buscador de Ejercicios */}
+      <div className="mb-6 relative">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <input
+          type="text"
+          placeholder="Buscar ejercicio por nombre..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:border-indigo-500 shadow-sm"
+        />
+      </div>
+
       {loading ? (
         <p className="text-gray-400">Cargando ejercicios...</p>
       ) : (
@@ -165,16 +216,16 @@ export const ExercisesView: React.FC = () => {
               <tr className="bg-gray-750 border-b border-gray-700 text-gray-300">
                 <th className="p-4">Nombre</th>
                 <th className="p-4">Descripción</th>
-                <th className="p-4">Músculo Principal</th>
+                <th className="p-4">Músculos Afectados</th>
                 {isAdmin && <th className="p-4 text-right">Acciones</th>}
               </tr>
             </thead>
             <tbody>
-              {exercises.map((ex) => (
+              {filteredExercises.map((ex) => (
                 <tr key={ex.id} className="border-b border-gray-700/50 hover:bg-gray-750/50 transition">
                   <td className="p-4 font-medium">{ex.name}</td>
                   <td className="p-4 text-gray-400">{ex.description || 'Sin descripción'}</td>
-                  <td className="p-4 text-indigo-300">{getPrimaryMuscleDisplay(ex)}</td>
+                  <td className="p-4">{getMusclesDisplay(ex)}</td>
                   
                   {isAdmin && (
                     <td className="p-4 text-right">
@@ -188,10 +239,10 @@ export const ExercisesView: React.FC = () => {
                   )}
                 </tr>
               ))}
-              {exercises.length === 0 && (
+              {filteredExercises.length === 0 && (
                 <tr>
                   <td colSpan={isAdmin ? 4 : 3} className="p-6 text-center text-gray-400">
-                    No hay ejercicios registrados en el catálogo.
+                    No se encontraron ejercicios que coincidan con la búsqueda.
                   </td>
                 </tr>
               )}

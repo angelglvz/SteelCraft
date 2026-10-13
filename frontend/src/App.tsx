@@ -7,8 +7,9 @@ import { MusclesView } from './pages/MusclesView';
 import { AdminRoute } from './components/AdminRoute'; 
 import { ProfileView } from './pages/ProfileView';
 import { ExercisesView } from './pages/ExercisesView';
-import { WorkoutsView } from './pages/WorkoutsView'; // O WorkoutsView según tu nombre de archivo
+import { WorkoutsView } from './pages/WorkoutsView';
 import { Sidebar } from './components/Sidebar';
+import { WorkoutsHistoryView } from './pages/WorkoutsHistoryView';
 import { Outlet } from 'react-router-dom';
 
 // Layout principal que incluye el Sidebar lateral y el área de contenido
@@ -36,6 +37,7 @@ export function App() {
             <Route element={<AppLayout />}>
               <Route path="/" element={<Navigate to="/workouts" replace />} />
               <Route path="/workouts" element={<WorkoutsView />} />
+              <Route path="/history" element={<WorkoutsHistoryView />} />
               <Route path="/exercises" element={<ExercisesView />} />
               <Route path="/profile" element={<ProfileView />} />
               

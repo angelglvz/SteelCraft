@@ -10,6 +10,7 @@ export const Sidebar: React.FC = () => {
 
   const navItems = [
     { label: 'Entrenamientos', path: '/workouts', icon: '🏋️‍♂️' },
+    { label: 'Historial', path: '/history', icon: '📅' },
     { label: 'Catálogo Ejercicios', path: '/exercises', icon: '📋' },
     ...(isAdmin ? [{ label: 'Gestión Músculos', path: '/muscles', icon: '💪' }] : []),
     { label: 'Mi Perfil', path: '/profile', icon: '👤' },
