@@ -6,6 +6,7 @@ import { Login } from './pages/Login';
 import { MusclesView } from './pages/MusclesView';
 import { AdminRoute } from './components/AdminRoute'; 
 import { ProfileView } from './pages/ProfileView';
+import { ExercisesView } from './pages/ExercisesView'
 
 
 // Componente temporal para el Dashboard principal mientras creamos las vistas de entrenamientos/músculos
@@ -30,6 +31,10 @@ export function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/profile" element={<ProfileView />} />
+
+            {/* Catálogo de Ejercicios visible para cualquier usuario autenticado */}
+            <Route path="/exercises" element={<ExercisesView />} />
+            
             <Route element={<AdminRoute />}>
               <Route path="/muscles" element={<MusclesView />} />
             </Route>

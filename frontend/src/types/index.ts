@@ -23,9 +23,17 @@ export interface Exercise {
   id: number;
   name: string;
   description?: string;
-  primary_muscle_id: number;
-  primary_muscle?: Muscle;
-  secondary_muscles?: Muscle[];
+  load_type?: string;
+  is_active?: boolean;
+  muscles?: ExerciseMuscle[];
+}
+
+// --- RELACION - EJERCICIO MUSCULOS ---
+export interface ExerciseMuscle {
+  id?: number;
+  muscle_id: number;
+  role: 'primary' | 'secondary';
+  muscle?: Muscle;
 }
 
 // --- MEDIDAS CORPORALES ---
@@ -59,4 +67,16 @@ export interface Workout {
   date: string;
   notes?: string;
   workout_exercises: WorkoutExercise[];
+}
+
+export interface ExerciseCreateInput {
+  name: string;
+  description?: string;
+  slug: string;
+  load_type: string;
+  is_active: boolean;
+  muscles: {
+    muscle_id: number;
+    role: 'primary' | 'secondary';
+  }[];
 }

@@ -1,5 +1,5 @@
 import api from './api';
-import type { Exercise } from '../types';
+import type { Exercise, ExerciseCreateInput } from '../types';
 
 export const exerciseService = {
   async getExercises(): Promise<Exercise[]> {
@@ -7,8 +7,12 @@ export const exerciseService = {
     return response.data;
   },
 
-  async createExercise(exerciseData: Omit<Exercise, 'id' | 'primary_muscle' | 'secondary_muscles'>): Promise<Exercise> {
+  async createExercise(exerciseData: ExerciseCreateInput): Promise<Exercise> {
     const response = await api.post<Exercise>('/exercises/', exerciseData);
     return response.data;
+  },
+
+  async deleteExercise(id: number): Promise<void> {
+    await api.delete(`/exercises/${id}`);
   },
 };

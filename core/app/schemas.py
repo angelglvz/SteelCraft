@@ -73,7 +73,7 @@ class ExerciseResponse(BaseModel):
     load_type: LoadType
     is_active: bool
     created_at: datetime
-    muscles: list[ExerciseMuscleLink] = []
+    muscles: list[ExerciseMuscleResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -155,5 +155,19 @@ class WorkoutResponse(BaseModel):
     source: DataSource
     created_at: datetime
     exercises: list[WorkoutExerciseResponse] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
+class MuscleNestedResponse(BaseModel):
+    id: int
+    name: str
+    slug: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ExerciseMuscleResponse(BaseModel):
+    muscle_id: int
+    role: MuscleRole
+    muscle: MuscleNestedResponse | None = None  
 
     model_config = ConfigDict(from_attributes=True)

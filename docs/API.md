@@ -35,8 +35,9 @@ Gestión de ejercicios y sus relaciones con los grupos musculares (principales y
 
 | Método | Endpoint | Descripción | Autenticación |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/exercises/` | Lista los ejercicios del catálogo con sus músculos implicados. | Sí (Bearer) |
+| `GET` | `/exercises/` | Lista los ejercicios del catálogo incluyendo sus relaciones con los músculos. | Sí (Bearer)
 | `POST` | `/exercises/` | Crea un nuevo ejercicio en el catálogo. | Sí (Admin/Bearer) |
+| `DELETE` | `/exercises/{id}` | Elimina un ejercicio del catálogo por su ID. | Sí (Admin/Bearer) |
 
 ---
 

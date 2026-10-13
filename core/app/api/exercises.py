@@ -2,7 +2,7 @@
 
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import select
 
 from app.database import get_db
@@ -15,8 +15,12 @@ router = APIRouter(prefix="/exercises", tags=["Exercises"])
 
 @router.get("/", response_model=list[ExerciseResponse])
 def list_exercises(db: Annotated[Session, Depends(get_db)]):
-    """Devuelve la lista completa de ejercicios del catálogo."""
-    exercises = db.scalars(select(Exercise)).all()
+    """Devuelve la lista completa de ejercicios del catálogo con sus músculos."""
+    exercises = db.scalars(
+        select(Exercise).options(
+            selectinload(Exercise.muscles).selectinload(ExerciseMuscle.muscle)
+        )
+    ).all()
     return exercises
 
 
@@ -26,7 +30,7 @@ def create_exercise(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    """Crea un nuevo ejercicio en el catálogo con sus músculos asociados (Solo administradores)."""
+    """Crea un nuevo ejercicio en el catálogo con sus músculos asociados (Solo administradores)[cite: 3]."""
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -47,7 +51,7 @@ def create_exercise(
         is_active=exercise_in.is_active,
     )
     db.add(db_exercise)
-    db.flush()  # Para obtener el id generado del ejercicio
+    db.flush()  # Para obtener el id generado del ejercicio[cite: 3]
 
     # Asociar músculos si se han proporcionado
     for m_link in exercise_in.muscles:
@@ -59,5 +63,36 @@ def create_exercise(
         db.add(db_muscle_link)
 
     db.commit()
-    db.refresh(db_exercise)
-    return db_exercise
+
+    # Recargar el ejercicio con las relaciones cargadas para que la respuesta serialice el nombre del músculo correctamente
+    stmt = (
+        select(Exercise)
+        .options(selectinload(Exercise.muscles).selectinload(ExerciseMuscle.muscle))
+        .where(Exercise.id == db_exercise.id)
+    )
+    db_exercise_loaded = db.scalar(stmt)
+    return db_exercise_loaded
+
+@router.delete("/{exercise_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_exercise(
+    exercise_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    """Elimina un ejercicio del catálogo por su ID (Solo administradores)."""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions to modify the exercise catalog",
+        )
+
+    db_exercise = db.query(Exercise).filter(Exercise.id == exercise_id).first()
+    if not db_exercise:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Exercise not found",
+        )
+
+    db.delete(db_exercise)
+    db.commit()
+    return None
