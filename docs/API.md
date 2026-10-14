@@ -1,21 +1,24 @@
 # Documentación de la API - SteelCraft 🏋️‍♂️
 
-SteelCraft es una API RESTful desarrollada con **FastAPI**, **SQLAlchemy** y **PostgreSQL**, diseñada para la gestión integral de entrenamientos, catálogo de ejercicios y medidas corporales con aislamiento estricto por usuario mediante **JWT**.
+SteelCraft es una API RESTful desarrollada con **FastAPI**, **SQLAlchemy** y **PostgreSQL**, diseñada para la gestión integral de entrenamientos, catálogo de ejercicios, medidas corporales y perfil de usuario con aislamiento estricto por usuario mediante **JWT**.
 
-* **Base URL:** `http://localhost:8000`
-* **Documentación Interactiva (Swagger):** `/docs`
-* **Documentación Alternativa (ReDoc):** `/redoc`
+* **Base URL:** `http://localhost:8000/api/v1`
+* **Documentación Interactiva (Swagger):** `http://localhost:8000/docs`
+* **Documentación Alternativa (ReDoc):** `http://localhost:8000/redoc`
 
 ---
 
-## 🔐 1. Autenticación (`/auth`)
-Endpoints encargados de la gestión de usuarios y generación de tokens de acceso seguro.
+## 🔐 1. Autenticación y Perfil (`/auth`)
+Endpoints encargados de la gestión de usuarios, generación de tokens de acceso seguro y control del perfil y avatares.
 
 | Método | Endpoint | Descripción | Autenticación |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/auth/token` | Inicia sesión y devuelve el token JWT Bearer. | No requerida |
+| `POST` | `/auth/login` | Inicia sesión (mediante formulario OAuth2) y devuelve el token JWT Bearer. | No requerida |
 | `POST` | `/auth/register` | Registra un nuevo usuario en el sistema. | No requerida |
-| `POST` | `/auth/logout` | Cierra la sesión del usuario actual validando el token activo. | Sí (Bearer) |
+| `POST` | `/auth/logout` | Cierra la sesión del usuario actual. | Sí (Bearer) |
+| `GET` | `/auth/users/me` | Obtiene la información del perfil del usuario actual autenticado. | Sí (Bearer) |
+| `PATCH` | `/auth/users/me` | Edita la información del perfil del usuario (nombre de usuario, fecha de nacimiento, etc.). | Sí (Bearer) |
+| `POST` | `/auth/users/me/avatar` | Sube o actualiza la imagen de avatar del perfil de usuario. | Sí (Bearer) |
 
 ---
 
@@ -35,7 +38,7 @@ Gestión de ejercicios y sus relaciones con los grupos musculares (principales y
 
 | Método | Endpoint | Descripción | Autenticación |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/exercises/` | Lista los ejercicios del catálogo incluyendo sus relaciones con los músculos. | Sí (Bearer)
+| `GET` | `/exercises/` | Lista los ejercicios del catálogo incluyendo sus relaciones con los músculos. | Sí (Bearer) |
 | `POST` | `/exercises/` | Crea un nuevo ejercicio en el catálogo. | Sí (Admin/Bearer) |
 | `DELETE` | `/exercises/{id}` | Elimina un ejercicio del catálogo por su ID. | Sí (Admin/Bearer) |
 
