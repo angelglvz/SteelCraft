@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
+import { RegisterView } from './pages/RegisterView';
 import { MusclesView } from './pages/MusclesView';
 import { AdminRoute } from './components/AdminRoute'; 
 import { ProfileView } from './pages/ProfileView';
@@ -29,12 +30,15 @@ export function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Ruta pública de Login */}
+          {/* Rutas públicas */}
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<RegisterView />} />
+
 
           {/* Rutas protegidas con el layout del Sidebar */}
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
+
               <Route path="/" element={<Navigate to="/workouts" replace />} />
               <Route path="/workouts" element={<WorkoutsView />} />
               <Route path="/history" element={<WorkoutsHistoryView />} />

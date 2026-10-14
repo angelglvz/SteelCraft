@@ -4,6 +4,7 @@ from datetime import datetime, date
 from decimal import Decimal
 from uuid import UUID
 
+from typing import Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from app.models import UserRole
@@ -20,15 +21,21 @@ class UserBase(BaseModel):
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
+    username: Optional[str] = None
 
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    birth_date: Optional[date] = None
 
 class UserResponse(UserBase):
     id: UUID
+    username: Optional[str] = None
     role: UserRole
+    avatar_key: Optional[str] = None
+    birth_date: Optional[date] = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
-
 
 # --- TOKEN SCHEMAS ---
 class Token(BaseModel):

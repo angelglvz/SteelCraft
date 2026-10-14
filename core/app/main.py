@@ -1,7 +1,9 @@
 """SteelCraft - Punto de entrada principal de FastAPI."""
-
+import os
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.config import settings
 #auth
 from app.api.auth import router as auth_router
@@ -17,6 +19,12 @@ from app.api.workouts import router as workouts_router
 from app.database import engine
 from app.models import Base
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent 
+UPLOADS_DIR = BASE_DIR / "uploads"
+
+AVATARS_DIR = UPLOADS_DIR / "avatars"
+os.makedirs(AVATARS_DIR, exist_ok=True)
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -26,6 +34,7 @@ app = FastAPI(
 
 Base.metadata.create_all(bind=engine)
 
+app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 origins = [
     "http://localhost:5173",

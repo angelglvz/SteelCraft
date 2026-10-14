@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export const Login: React.FC = () => {
@@ -29,19 +29,19 @@ export const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white px-4">
-      <div className="max-w-md w-full bg-gray-900 border border-gray-800 rounded-xl p-8 shadow-2xl">
-        <div className="text-center mb-8">
+      <div className="max-w-md w-full bg-gray-900 border border-gray-800 rounded-xl p-8 shadow-2xl space-y-6">
+        <div className="text-center mb-2">
           <h1 className="text-3xl font-extrabold tracking-tight text-blue-500">SteelCraft</h1>
           <p className="text-sm text-gray-400 mt-2">Inicia sesión para gestionar tus entrenamientos</p>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-900/50 border border-red-700 text-red-200 text-sm rounded-lg">
+          <div className="p-3 bg-red-900/50 border border-red-700 text-red-200 text-sm rounded-lg">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">Correo Electrónico</label>
             <input
@@ -74,6 +74,13 @@ export const Login: React.FC = () => {
             {loading ? 'Iniciando sesión...' : 'Entrar'}
           </button>
         </form>
+
+        <div className="text-center text-sm text-gray-400 pt-2 border-t border-gray-800">
+          ¿Aún no tienes cuenta?{' '}
+          <Link to="/register" className="text-blue-400 hover:underline font-medium">
+            Regístrate aquí
+          </Link>
+        </div>
       </div>
     </div>
   );

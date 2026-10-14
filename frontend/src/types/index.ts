@@ -4,6 +4,9 @@ export interface User {
   email: string;
   username?: string;
   is_active?: boolean;
+  avatar_key?: string | null;
+  birth_date?: string | null;
+  role?: string;
 }
 
 export interface Token {

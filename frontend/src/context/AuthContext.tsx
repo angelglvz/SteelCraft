@@ -20,37 +20,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [role, setRole] = useState<string | null>(localStorage.getItem('role'));
   const isAdmin = role === 'admin' || role === 'ADMIN';
 
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem('token', token);
-    } else {
-      localStorage.removeItem('token');
-    }
-  }, [token]);
-
-  useEffect(() => {
-    if (role) {
-      localStorage.setItem('role', role);
-    } else {
-      localStorage.removeItem('role');
-    }
-  }, [role]);
-
-  const handleLogin = async (email: string, pass: string) => {
-    try {
-      const data = await authService.login(email, pass);
-      setToken(data.access_token);
-      // Si tu backend devuelve el rol en el login (ej: data.role), guárdalo así:
-      if (data.role) {
-        setRole(data.role);
-        localStorage.setItem('role', data.role);
-      }
-    } catch (error) {
-      console.error('Error en el login:', error);
-      throw error;
-    }
-  };
-
   const handleLogout = () => {
     setToken(null);
     setUser(null);
@@ -58,6 +27,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('token');
     localStorage.removeItem('role');
   };
+
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem('token', token);
+      
+      const fetchUserData = async () => {
+        try {
+          const userData = await authService.getMe();
+          setUser(userData);
+          if (userData.role) {
+            setRole(userData.role);
+          }
+        } catch (err) {
+          console.error('Error al obtener el usuario autenticado:', err);
+          handleLogout();
+        }
+      };
+
+      fetchUserData();
+    } else {
+      localStorage.removeItem('token');
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setUser(null);
+    }
+
+    if (role) {
+      localStorage.setItem('role', role);
+    } else {
+      localStorage.removeItem('role');
+    }
+  }, [token, role]);
+
+  const handleLogin = async (email: string, pass: string) => {
+    try {
+      const data = await authService.login(email, pass);
+      setToken(data.access_token);
+      if (data.role) {
+        setRole(data.role);
+        localStorage.setItem('role', data.role);
+      }
+      const userData = await authService.getMe();
+      setUser(userData);
+    } catch (error) {
+      console.error('Error en el login:', error);
+      throw error;
+    }
+  };
+
+  
 
   return (
     <AuthContext.Provider
