@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { workoutService } from '../services/workoutService';
 import { exerciseService } from '../services/exerciseService';
 import type { Workout, Exercise } from '../types';
+
 
 export const WorkoutsHistoryView: React.FC = () => {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [exercisesCatalog, setExercisesCatalog] = useState<Map<number, string>>(new Map());
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     Promise.all([
@@ -35,6 +37,12 @@ export const WorkoutsHistoryView: React.FC = () => {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (!loading && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
+    }
+  }, [loading]);
 
   const workoutsByDate = new Map<string, Workout[]>();
   let totalYearWorkouts = 0;
@@ -142,7 +150,7 @@ export const WorkoutsHistoryView: React.FC = () => {
           {totalYearWorkouts} entrenamientos registrados en el último año
         </h3>
 
-        <div className="overflow-x-auto pb-4">
+        <div ref={scrollContainerRef} className="overflow-x-auto pb-4">
           <div className="min-w-[750px]">
             <div className="relative h-5 text-xs text-gray-400 mb-2 pl-7">
               {monthsHeader.map((m, idx) => {

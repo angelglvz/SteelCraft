@@ -11,6 +11,7 @@ import { ExercisesView } from './pages/ExercisesView';
 import { WorkoutsView } from './pages/WorkoutsView';
 import { Sidebar } from './components/Sidebar';
 import { WorkoutsHistoryView } from './pages/WorkoutsHistoryView';
+import { MeasurementsView } from './pages/MeasurementsView';
 import { Outlet } from 'react-router-dom';
 
 // Layout principal que incluye el Sidebar lateral y el área de contenido
@@ -43,6 +44,7 @@ export function App() {
               <Route path="/workouts" element={<WorkoutsView />} />
               <Route path="/history" element={<WorkoutsHistoryView />} />
               <Route path="/exercises" element={<ExercisesView />} />
+              <Route path="/measurements" element={<MeasurementsView />} />
               <Route path="/profile" element={<ProfileView />} />
               
               <Route element={<AdminRoute />}>

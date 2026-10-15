@@ -14,7 +14,9 @@ export const ProfileView: React.FC = () => {
 
   const [workoutCount, setWorkoutCount] = useState<number>(0);
   const [measurementsCount, setMeasurementsCount] = useState<number>(0);
-  
+  const [latestWeight, setLatestWeight] = useState<string>('No registrado');
+  const [latestHeight, setLatestHeight] = useState<string>('No registrada');
+
   
   // Inicializamos el avatar de forma segura al montar el componente usando el usuario actual
   const [avatarUrl, setAvatarUrl] = useState<string | null>(() => {
@@ -69,8 +71,19 @@ export const ProfileView: React.FC = () => {
       .catch(() => setWorkoutCount(0));
 
     api.get('/measurements/')
-      .then((res) => setMeasurementsCount(res.data?.length || 0))
-      .catch(() => setMeasurementsCount(0));
+      .then((res) => {
+        const list = res.data || [];
+        setMeasurementsCount(list.length);
+        if (list.length > 0) {
+          // Como vienen ordenadas de más reciente a más antigua
+          const latest = list[0];
+          if (latest.weight_kg) setLatestWeight(`${latest.weight_kg} kg`);
+          if (latest.height_cm) setLatestHeight(`${latest.height_cm} cm`);
+        }
+      })
+      .catch(() => {
+        setMeasurementsCount(0);
+      });
 
     return () => {
       isMounted = false;
@@ -128,7 +141,7 @@ export const ProfileView: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
       <div className="max-w-md mx-auto bg-gray-800 rounded-lg shadow-md p-6 border border-gray-700 space-y-6">
-        <h1 className="type-2xl font-bold text-center text-blue-400">Perfil de Usuario</h1>
+        <h1 className="text-2xl font-bold text-center text-blue-400">Perfil de Usuario</h1>
         
         <div className="flex flex-col items-center">
           <div className="relative group">
@@ -186,15 +199,23 @@ export const ProfileView: React.FC = () => {
 
           <div className="bg-gray-900 p-3 rounded-lg border border-gray-700/60 space-y-2">
             <div className="flex justify-between items-center text-sm">
+              <span className="text-gray-400">Peso actual:</span>
+              <span className="font-bold text-white">{latestWeight}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-gray-400">Estatura actual:</span>
+              <span className="font-bold text-white">{latestHeight}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
               <span className="text-gray-400">Entrenamientos registrados:</span>
               <span className="font-bold text-white">{workoutCount}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-400">Datos de mediciones:</span>
-              <span className="font-bold text-white">{measurementsCount} registros</span>
+              <span className="text-gray-400">Registros de mediciones:</span>
+              <span className="font-bold text-white">{measurementsCount}</span>
             </div>
           </div>
-        </div>
+        </div> 
 
         <div className="space-y-3 pt-2">
           <button

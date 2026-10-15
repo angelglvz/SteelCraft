@@ -42,12 +42,14 @@ export interface ExerciseMuscle {
 
 // --- MEDIDAS CORPORALES ---
 export interface Measurement {
-  id: number;
-  user_id: number;
-  date: string; // O Date, según cómo lo serialice FastAPI (generalmente string ISO)
-  weight?: number;
-  height?: number;
-  body_fat_percentage?: number;
+  id?: string;
+  user_id?: string;
+  measured_at: string;
+  weight_kg?: number;
+  height_cm?: number;
+  body_fat_pct?: number;
+  source?: 'manual' | 'telegram_import';
+  created_at?: string;
 }
 
 // --- ENTRENAMIENTOS Y SERIES (SetLogs) ---

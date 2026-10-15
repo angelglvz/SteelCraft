@@ -12,6 +12,7 @@ export const Sidebar: React.FC = () => {
     { label: 'Entrenamientos', path: '/workouts', icon: '🏋️‍♂️' },
     { label: 'Historial', path: '/history', icon: '📅' },
     { label: 'Catálogo Ejercicios', path: '/exercises', icon: '📋' },
+    { label: 'Medidas Corporales', path: '/measurements', icon: '⚖️' },
     ...(isAdmin ? [{ label: 'Gestión Músculos', path: '/muscles', icon: '💪' }] : []),
     { label: 'Mi Perfil', path: '/profile', icon: '👤' },
   ];
