@@ -137,12 +137,12 @@ export const WorkoutsView: React.FC = () => {
 
   if (!isTrainingActive) {
     return (
-      <div className="px-6 py-8 w-full min-h-screen flex flex-col justify-center items-center text-center bg-steel-base font-hurme">
-        <h1 className="text-3xl font-extrabold mb-4 text-steel-accent tracking-wide">Panel de Entrenamientos</h1>
-        <p className="text-steel-muted mb-8 text-sm">Comienza una sesión para registrar tus ejercicios y series en tiempo real.</p>
+      <div className="px-4 sm:px-6 py-8 w-full min-h-screen flex flex-col justify-center items-center text-center bg-steel-base font-hurme">
+        <h1 className="text-2xl sm:text-3xl font-extrabold mb-4 text-steel-accent tracking-wide">Panel de Entrenamientos</h1>
+        <p className="text-steel-muted mb-8 text-sm max-w-md">Comienza una sesión para registrar tus ejercicios y series en tiempo real.</p>
         <button
           onClick={handleStartWorkout}
-          className="font-bold py-3.5 px-8 rounded-full transition-transform active:scale-95 cursor-pointer shadow-lg bg-steel-accent text-steel-base hover:opacity-90"
+          className="w-full sm:w-auto font-bold py-3.5 px-8 rounded-full transition-transform active:scale-95 cursor-pointer shadow-lg bg-steel-accent text-steel-base hover:opacity-90"
         >
           Comenzar Entrenamiento
         </button>
@@ -151,9 +151,9 @@ export const WorkoutsView: React.FC = () => {
   }
 
   return (
-    <div className="px-6 py-8 w-full min-h-screen pb-32 bg-steel-base font-hurme">
-      <div className="max-w-4xl">
-        <h1 className="text-2xl font-bold mb-6 text-steel-accent">Entrenamiento en Curso</h1>
+    <div className="px-4 sm:px-6 py-6 sm:py-8 w-full min-h-screen pb-36 bg-steel-base font-hurme">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-xl sm:text-2xl font-bold mb-6 text-steel-accent">Entrenamiento en Curso</h1>
 
         <div className="space-y-4 mb-8">
           {activeExercises.map((ex, index) => {
@@ -161,20 +161,20 @@ export const WorkoutsView: React.FC = () => {
             return (
               <div key={index} className="p-4 rounded-xl border shadow-xl bg-steel-surface border-steel-border">
                 <div 
-                  className="flex justify-between items-center cursor-pointer select-none" 
+                  className="flex justify-between items-center cursor-pointer select-none gap-2" 
                   onClick={() => handleToggleExpand(index)}
                 >
-                  <div>
-                    <span className="font-bold text-lg text-steel-accent">
+                  <div className="overflow-hidden">
+                    <span className="font-bold text-base sm:text-lg text-steel-accent block sm:inline">
                       {ex.name} {ex.isExpanded ? '▲' : '▼'}
                     </span>
                     {!ex.isExpanded && (
-                      <span className="ml-4 text-sm text-steel-muted">
+                      <span className="sm:ml-4 text-xs sm:text-sm text-steel-muted block sm:inline">
                         ({ex.sets.length} series · Última: {lastSet?.reps} reps / {lastSet?.weight_kg} kg)
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-3 shrink-0">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleRemoveExercise(index); }}
                       className="font-bold p-1 rounded px-2.5 py-1 text-xs transition-colors cursor-pointer border shadow-sm bg-steel-coral/15 border-steel-coral text-steel-coral"
@@ -188,8 +188,8 @@ export const WorkoutsView: React.FC = () => {
                 {ex.isExpanded && (
                   <div className="mt-4 pt-4 border-t border-steel-border space-y-3">
                     {ex.sets.map((set, sIdx) => (
-                      <div key={sIdx} className="flex items-center space-x-4 p-2.5 rounded-lg bg-steel-base border border-steel-border">
-                        <span className="text-sm font-semibold text-steel-muted w-16">Serie {set.set_number}</span>
+                      <div key={sIdx} className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 p-2.5 rounded-lg bg-steel-base border border-steel-border">
+                        <span className="text-xs sm:text-sm font-semibold text-steel-muted w-full sm:w-16">Serie {set.set_number}</span>
                         <div className="flex items-center space-x-1">
                           <input
                             type="number"
@@ -199,9 +199,9 @@ export const WorkoutsView: React.FC = () => {
                               updated[index].sets[sIdx].reps = Number(e.target.value);
                               setActiveExercises(updated);
                             }}
-                            className="w-16 bg-steel-surface-light border border-steel-border rounded p-1 text-center text-steel-text font-bold"
+                            className="w-16 bg-steel-surface-light border border-steel-border rounded p-1 text-center text-steel-text font-bold text-sm"
                           />
-                          <span className="text-sm text-steel-muted">reps</span>
+                          <span className="text-xs sm:text-sm text-steel-muted">reps</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <input
@@ -212,15 +212,15 @@ export const WorkoutsView: React.FC = () => {
                               updated[index].sets[sIdx].weight_kg = Number(e.target.value);
                               setActiveExercises(updated);
                             }}
-                            className="w-20 bg-steel-surface-light border border-steel-border rounded p-1 text-center text-steel-text font-bold"
+                            className="w-20 bg-steel-surface-light border border-steel-border rounded p-1 text-center text-steel-text font-bold text-sm"
                           />
-                          <span className="text-sm text-steel-muted">kg</span>
+                          <span className="text-xs sm:text-sm text-steel-muted">kg</span>
                         </div>
                       </div>
                     ))}
                     <button
                       onClick={() => handleAddSetToCurrent(index)}
-                      className="mt-2 text-sm px-4 py-1.5 rounded-lg flex items-center space-x-1 cursor-pointer font-bold bg-steel-surface-light text-steel-text border border-steel-border hover:bg-steel-base"
+                      className="mt-2 text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center justify-center space-x-1 cursor-pointer font-bold bg-steel-surface-light text-steel-text border border-steel-border hover:bg-steel-base w-full sm:w-auto"
                     >
                       <span>+ Añadir Serie</span>
                     </button>
@@ -231,14 +231,14 @@ export const WorkoutsView: React.FC = () => {
           })}
         </div>
 
-        <div className="p-5 rounded-xl border shadow-xl bg-steel-surface border-steel-border mb-8">
+        <div className="p-4 sm:p-5 rounded-xl border shadow-xl bg-steel-surface border-steel-border mb-8">
           <h3 className="text-xs font-bold text-steel-muted tracking-wider mb-2">AÑADIR SIGUIENTE EJERCICIO</h3>
           <input
             type="text"
             placeholder="Buscar ejercicio en el catálogo..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-lg px-4 py-3 text-steel-text placeholder-steel-muted/60 border bg-steel-surface-light border-steel-border focus:outline-none mb-3"
+            className="w-full rounded-lg px-4 py-3 text-steel-text placeholder-steel-muted/60 border bg-steel-surface-light border-steel-border focus:outline-none mb-3 text-sm sm:text-base"
           />
 
           {searchTerm && (
@@ -262,7 +262,7 @@ export const WorkoutsView: React.FC = () => {
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-steel-base/95 backdrop-blur border-t border-steel-border flex justify-center z-50">
           <button
             onClick={handleFinishWorkout}
-            className="font-bold py-3 px-8 rounded-full shadow-xl transition-transform active:scale-95 cursor-pointer w-full max-w-md border bg-steel-coral/20 border-steel-coral text-steel-coral hover:bg-steel-coral/30"
+            className="font-bold py-3.5 px-6 rounded-full shadow-xl transition-transform active:scale-95 cursor-pointer w-full max-w-md border bg-steel-coral/20 border-steel-coral text-steel-coral hover:bg-steel-coral/30 text-sm sm:text-base"
           >
             Terminar Entrenamiento
           </button>

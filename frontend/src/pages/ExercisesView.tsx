@@ -111,10 +111,10 @@ export const ExercisesView: React.FC = () => {
   );
 
   return (
-    <div className="px-6 py-8 w-full min-h-screen bg-steel-base font-hurme">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 w-full min-h-screen bg-steel-base font-hurme">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-wide text-steel-text drop-shadow-sm">Catálogo de Ejercicios</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-wide text-steel-text drop-shadow-sm">Catálogo de Ejercicios</h1>
           <p className="text-sm mt-1 font-medium text-steel-muted">
             {isAdmin ? 'Modo Administrador' : 'Consulta los ejercicios disponibles'}
           </p>
@@ -128,7 +128,7 @@ export const ExercisesView: React.FC = () => {
       )}
 
       {isAdmin && (
-        <div className="p-6 rounded-xl mb-8 border shadow-xl bg-steel-surface border-steel-border">
+        <div className="p-4 sm:p-6 rounded-xl mb-8 border shadow-xl bg-steel-surface border-steel-border">
           <h2 className="text-xl font-bold mb-4 text-steel-accent">Añadir Nuevo Ejercicio</h2>
           <form onSubmit={handleCreateExercise}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -182,7 +182,7 @@ export const ExercisesView: React.FC = () => {
 
             <button
               type="submit"
-              className="font-bold py-3 px-8 rounded-full transition-transform active:scale-95 cursor-pointer shadow-lg bg-steel-accent text-steel-base hover:opacity-90"
+              className="w-full sm:w-auto font-bold py-3 px-8 rounded-full transition-transform active:scale-95 cursor-pointer shadow-lg bg-steel-accent text-steel-base hover:opacity-90"
             >
               Guardar Ejercicio
             </button>
@@ -203,8 +203,8 @@ export const ExercisesView: React.FC = () => {
       {loading ? (
         <p className="text-steel-text font-medium">Cargando ejercicios...</p>
       ) : (
-        <div className="rounded-xl overflow-hidden border shadow-xl bg-steel-surface border-steel-border">
-          <table className="w-full text-left border-collapse">
+        <div className="rounded-xl overflow-x-auto border shadow-xl bg-steel-surface border-steel-border">
+          <table className="w-full text-left border-collapse min-w-[650px]">
             <thead>
               <tr className="border-b text-sm font-bold tracking-wider bg-steel-base/60 border-steel-border text-steel-text">
                 <th className="p-4">Nombre</th>

@@ -74,12 +74,12 @@ export const MeasurementsView: React.FC = () => {
   };
 
   return (
-    <div className="px-6 py-8 w-full min-h-screen space-y-8 bg-steel-base font-hurme">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 w-full min-h-screen space-y-8 bg-steel-base font-hurme">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-extrabold tracking-wide text-steel-text drop-shadow-sm">Medidas Corporales</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-wide text-steel-text drop-shadow-sm">Medidas Corporales</h1>
       </div>
 
-      <div className="p-6 rounded-xl border shadow-xl bg-steel-surface border-steel-border">
+      <div className="p-4 sm:p-6 rounded-xl border shadow-xl bg-steel-surface border-steel-border">
         <h2 className="text-xl font-bold mb-4 text-steel-accent">Añadir Nueva Medición</h2>
         
         {error && <div className="mb-4 p-3 rounded-lg text-sm border font-medium bg-steel-coral/15 border-steel-coral text-steel-text">{error}</div>}
@@ -144,7 +144,7 @@ export const MeasurementsView: React.FC = () => {
         </form>
       </div>
 
-      <div className="p-6 rounded-xl border shadow-xl bg-steel-surface border-steel-border">
+      <div className="p-4 sm:p-6 rounded-xl border shadow-xl bg-steel-surface border-steel-border">
         <h2 className="text-xl font-bold mb-4 text-steel-accent">Historial de Progreso</h2>
         
         {loading ? (
@@ -153,7 +153,7 @@ export const MeasurementsView: React.FC = () => {
           <p className="text-center py-4 font-medium text-steel-muted">No hay mediciones registradas todavía.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[500px]">
               <thead>
                 <tr className="border-b text-sm font-bold tracking-wider bg-steel-base/60 border-steel-border text-steel-text">
                   <th className="py-3.5 px-4">Fecha</th>

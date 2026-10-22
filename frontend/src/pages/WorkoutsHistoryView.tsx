@@ -133,17 +133,17 @@ export const WorkoutsHistoryView: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="p-8 text-steel-text bg-steel-base min-h-screen w-full">Cargando historial de entrenamientos...</div>;
+    return <div className="p-8 text-steel-text bg-steel-base min-h-screen w-full font-hurme">Cargando historial de entrenamientos...</div>;
   }
 
   return (
-    <div className="px-6 py-8 w-full min-h-screen space-y-8 bg-steel-base font-hurme">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 w-full min-h-screen space-y-6 sm:space-y-8 bg-steel-base font-hurme">
       <div>
-        <h1 className="text-3xl font-extrabold text-steel-accent tracking-wide drop-shadow-sm">Historial y Actividad</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-steel-accent tracking-wide drop-shadow-sm">Historial y Actividad</h1>
         <p className="text-steel-muted text-sm mt-1">Visualiza tu constancia anual y selecciona un día para ver los detalles.</p>
       </div>
 
-      <div className="p-6 rounded-xl border shadow-xl bg-steel-surface border-steel-border">
+      <div className="p-4 sm:p-6 rounded-xl border shadow-xl bg-steel-surface border-steel-border">
         <h3 className="text-sm font-bold text-steel-muted mb-6">
           {totalYearWorkouts} entrenamientos registrados en el último año
         </h3>
@@ -199,9 +199,9 @@ export const WorkoutsHistoryView: React.FC = () => {
         </div>
       </div>
 
-      <div className="p-6 rounded-xl border shadow-xl bg-steel-surface border-steel-border">
-        <h2 className="text-xl font-bold mb-4 text-steel-accent">
-          Entrenamiento(s) del día: <span className="text-steel-text">{selectedDate || 'Ninguna fecha seleccionada'}</span>
+      <div className="p-4 sm:p-6 rounded-xl border shadow-xl bg-steel-surface border-steel-border">
+        <h2 className="text-lg sm:text-xl font-bold mb-4 text-steel-accent">
+          Entrenamiento(s) del día: <span className="text-steel-text text-base sm:text-lg block sm:inline">{selectedDate || 'Ninguna fecha seleccionada'}</span>
         </h2>
         
         {selectedWorkouts.length > 0 ? (
@@ -227,7 +227,7 @@ export const WorkoutsHistoryView: React.FC = () => {
 
                     return (
                       <div key={idx} className="p-3 rounded-lg border bg-steel-surface border-steel-border">
-                        <span className="font-bold text-steel-accent">
+                        <span className="font-bold text-steel-accent text-sm sm:text-base">
                           {exerciseName}
                         </span>
                         <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -246,7 +246,7 @@ export const WorkoutsHistoryView: React.FC = () => {
             ))}
           </div>
         ) : (
-          <p className="text-steel-muted">No hay entrenamientos registrados en esta fecha.</p>
+          <p className="text-steel-muted text-sm sm:text-base">No hay entrenamientos registrados en esta fecha.</p>
         )}
       </div>
     </div>

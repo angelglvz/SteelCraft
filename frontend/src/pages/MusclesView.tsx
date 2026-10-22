@@ -7,7 +7,6 @@ export const MusclesView: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Estado para el formulario de creación
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
@@ -49,7 +48,7 @@ export const MusclesView: React.FC = () => {
       await muscleService.createMuscle({ name, description });
       setName('');
       setDescription('');
-      fetchMuscles(); // Recargar la lista
+      fetchMuscles();
     } catch (err) {
       console.error('Error al crear músculo:', err);
       alert('No se pudo crear el músculo.');
@@ -57,12 +56,11 @@ export const MusclesView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-steel-base text-steel-text px-6 py-8 font-hurme">
-      <div className="max-w-4xl">
-        <h1 className="text-3xl font-extrabold text-steel-accent mb-6 tracking-wide drop-shadow-sm">Gestión de Músculos</h1>
+    <div className="min-h-screen bg-steel-base text-steel-text px-4 sm:px-6 py-6 sm:py-8 font-hurme">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-steel-accent mb-6 tracking-wide drop-shadow-sm">Gestión de Músculos</h1>
 
-        {/* Formulario de creación */}
-        <form onSubmit={handleCreate} className="bg-steel-surface border border-steel-border rounded-xl p-6 mb-8 shadow-xl">
+        <form onSubmit={handleCreate} className="bg-steel-surface border border-steel-border rounded-xl p-4 sm:p-6 mb-8 shadow-xl">
           <h2 className="text-xl font-bold mb-4 text-steel-accent">Añadir Nuevo Músculo</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
@@ -89,14 +87,13 @@ export const MusclesView: React.FC = () => {
           </div>
           <button
             type="submit"
-            className="font-bold py-3 px-8 rounded-full transition-transform active:scale-95 cursor-pointer shadow-lg bg-steel-accent text-steel-base hover:opacity-90"
+            className="w-full sm:w-auto font-bold py-3 px-8 rounded-full transition-transform active:scale-95 cursor-pointer shadow-lg bg-steel-accent text-steel-base hover:opacity-90"
           >
             Guardar Músculo
           </button>
         </form>
 
-        {/* Listado de músculos */}
-        <div className="bg-steel-surface border border-steel-border rounded-xl p-6 shadow-xl">
+        <div className="bg-steel-surface border border-steel-border rounded-xl p-4 sm:p-6 shadow-xl">
           <h2 className="text-xl font-bold mb-4 text-steel-accent">Músculos Registrados</h2>
 
           {loading ? (
@@ -107,7 +104,7 @@ export const MusclesView: React.FC = () => {
             <p className="text-steel-muted font-medium">No hay músculos registrados todavía.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[450px]">
                 <thead>
                   <tr className="border-b border-steel-border text-steel-text text-sm font-bold bg-steel-base/60">
                     <th className="py-3.5 px-4">Nombre</th>

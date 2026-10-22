@@ -5,7 +5,6 @@ import { workoutService } from '../services/workoutService';
 import { authService } from '../services/authService';
 import api from '../services/api';
 
-// Obtenemos la URL base del backend desde las variables de entorno de Vite, con fallback a localhost para desarrollo
 const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export const ProfileView: React.FC = () => {
@@ -17,7 +16,6 @@ export const ProfileView: React.FC = () => {
   const [latestWeight, setLatestWeight] = useState<string>('No registrado');
   const [latestHeight, setLatestHeight] = useState<string>('No registrada');
 
-  // Inicializamos el avatar de forma segura al montar el componente usando el usuario actual
   const [avatarUrl, setAvatarUrl] = useState<string | null>(() => {
     const rawKey = user?.avatar_key;
     if (!rawKey) return null;
@@ -30,7 +28,6 @@ export const ProfileView: React.FC = () => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Efecto limpio para sincronizar si el usuario cambia
   React.useEffect(() => {
     let isMounted = true;
 
@@ -41,7 +38,6 @@ export const ProfileView: React.FC = () => {
           const rootBase = BACKEND_URL.replace(/\/api\/v1\/?$/, '');
           const imageUrl = `${rootBase}/${normalizedKey}`;
 
-          // Verificamos mediante fetch si la imagen realmente existe en el servidor antes de asignarla
           const response = await fetch(imageUrl, { method: 'HEAD' });
           
           if (response.ok && isMounted) {
@@ -136,9 +132,9 @@ export const ProfileView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-steel-base text-steel-text px-6 py-8 font-hurme flex items-center justify-center">
-      <div className="max-w-md w-full bg-steel-surface rounded-xl shadow-xl p-6 border border-steel-border space-y-6">
-        <h1 className="text-2xl font-bold text-center text-steel-accent tracking-wide drop-shadow-sm">Perfil de Usuario</h1>
+    <div className="min-h-screen bg-steel-base text-steel-text px-4 sm:px-6 py-6 sm:py-8 font-hurme flex items-center justify-center">
+      <div className="max-w-md w-full bg-steel-surface rounded-xl shadow-xl p-5 sm:p-6 border border-steel-border space-y-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-center text-steel-accent tracking-wide drop-shadow-sm">Perfil de Usuario</h1>
         
         <div className="flex flex-col items-center">
           <div className="relative group">
@@ -179,12 +175,12 @@ export const ProfileView: React.FC = () => {
         <div className="space-y-4">
           <div>
             <label className="text-sm text-steel-muted font-medium block">Nombre de Usuario:</label>
-            <p className="text-lg font-semibold text-steel-text">{user?.username || 'Usuario SteelCraft'}</p>
+            <p className="text-base sm:text-lg font-semibold text-steel-text break-all">{user?.username || 'Usuario SteelCraft'}</p>
           </div>
 
           <div>
             <label className="text-sm text-steel-muted font-medium block">Correo Electrónico:</label>
-            <p className="text-lg font-semibold text-steel-text">{user?.email || 'No disponible'}</p>
+            <p className="text-base sm:text-lg font-semibold text-steel-text break-all">{user?.email || 'No disponible'}</p>
           </div>
 
           <div>
