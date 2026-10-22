@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -16,10 +16,11 @@ import { Outlet } from 'react-router-dom';
 
 // Layout principal que incluye el Sidebar lateral y el área de contenido
 const AppLayout: React.FC = () => {
+  const [collapsed, setCollapsed] = useState(false);
   return (
-    <div className="flex min-h-screen bg-gray-950 text-white">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto">
+    <div className="flex min-h-screen bg-steel-base text-steel-text">
+      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      <main className={`flex-1 overflow-y-auto transition-all duration-300 bg-steel-base min-h-screen ${collapsed ? 'ml-20' : 'ml-64'}`}>
         <Outlet />
       </main>
     </div>

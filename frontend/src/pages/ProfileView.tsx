@@ -17,7 +17,6 @@ export const ProfileView: React.FC = () => {
   const [latestWeight, setLatestWeight] = useState<string>('No registrado');
   const [latestHeight, setLatestHeight] = useState<string>('No registrada');
 
-  
   // Inicializamos el avatar de forma segura al montar el componente usando el usuario actual
   const [avatarUrl, setAvatarUrl] = useState<string | null>(() => {
     const rawKey = user?.avatar_key;
@@ -48,7 +47,6 @@ export const ProfileView: React.FC = () => {
           if (response.ok && isMounted) {
             setAvatarUrl(imageUrl);
           } else if (isMounted) {
-            // Si da 404 o no existe físicamente, evitamos romper y dejamos el avatar en null
             setAvatarUrl(null);
           }
         } catch (err) {
@@ -75,7 +73,6 @@ export const ProfileView: React.FC = () => {
         const list = res.data || [];
         setMeasurementsCount(list.length);
         if (list.length > 0) {
-          // Como vienen ordenadas de más reciente a más antigua
           const latest = list[0];
           if (latest.weight_kg) setLatestWeight(`${latest.weight_kg} kg`);
           if (latest.height_cm) setLatestHeight(`${latest.height_cm} cm`);
@@ -139,13 +136,13 @@ export const ProfileView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
-      <div className="max-w-md mx-auto bg-gray-800 rounded-lg shadow-md p-6 border border-gray-700 space-y-6">
-        <h1 className="text-2xl font-bold text-center text-blue-400">Perfil de Usuario</h1>
+    <div className="min-h-screen bg-steel-base text-steel-text px-6 py-8 font-hurme flex items-center justify-center">
+      <div className="max-w-md w-full bg-steel-surface rounded-xl shadow-xl p-6 border border-steel-border space-y-6">
+        <h1 className="text-2xl font-bold text-center text-steel-accent tracking-wide drop-shadow-sm">Perfil de Usuario</h1>
         
         <div className="flex flex-col items-center">
           <div className="relative group">
-            <div className="w-24 h-24 rounded-full bg-gray-900 border-2 border-dashed border-gray-600 flex items-center justify-center text-gray-500 text-xs overflow-hidden shadow-inner">
+            <div className="w-24 h-24 rounded-full bg-steel-base border-2 border-dashed border-steel-border flex items-center justify-center text-steel-muted text-xs overflow-hidden shadow-inner">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -156,7 +153,7 @@ export const ProfileView: React.FC = () => {
             <button
               onClick={handleAvatarClick}
               disabled={uploading}
-              className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-full shadow-lg border border-gray-800 transition transform hover:scale-105 cursor-pointer"
+              className="absolute bottom-0 right-0 bg-steel-accent text-steel-base p-2 rounded-full shadow-lg border border-steel-border transition-transform hover:scale-105 cursor-pointer font-bold"
               title="Cambiar foto de perfil"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -175,44 +172,44 @@ export const ProfileView: React.FC = () => {
           </div>
 
           {uploadError && (
-            <p className="text-xs text-red-400 mt-2 text-center">{uploadError}</p>
+            <p className="text-xs text-steel-coral mt-2 text-center font-medium">{uploadError}</p>
           )}
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="text-sm text-gray-400 block">Nombre de Usuario:</label>
-            <p className="text-lg font-medium">{user?.username || 'Usuario SteelCraft'}</p>
+            <label className="text-sm text-steel-muted font-medium block">Nombre de Usuario:</label>
+            <p className="text-lg font-semibold text-steel-text">{user?.username || 'Usuario SteelCraft'}</p>
           </div>
 
           <div>
-            <label className="text-sm text-gray-400 block">Correo Electrónico:</label>
-            <p className="text-lg font-medium">{user?.email || 'No disponible'}</p>
+            <label className="text-sm text-steel-muted font-medium block">Correo Electrónico:</label>
+            <p className="text-lg font-semibold text-steel-text">{user?.email || 'No disponible'}</p>
           </div>
 
           <div>
-            <label className="text-sm text-gray-400 block">Plan de Usuario:</label>
-            <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mt-1 bg-indigo-600 text-white">
+            <label className="text-sm text-steel-muted font-medium block">Plan de Usuario:</label>
+            <span className="inline-block px-3 py-1 rounded-full text-xs font-bold mt-1 bg-steel-accent text-steel-base shadow-sm">
               Standard / V1.0
             </span>
           </div>
 
-          <div className="bg-gray-900 p-3 rounded-lg border border-gray-700/60 space-y-2">
+          <div className="bg-steel-base p-4 rounded-lg border border-steel-border space-y-2.5">
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-400">Peso actual:</span>
-              <span className="font-bold text-white">{latestWeight}</span>
+              <span className="text-steel-muted">Peso actual:</span>
+              <span className="font-bold text-steel-accent">{latestWeight}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-400">Estatura actual:</span>
-              <span className="font-bold text-white">{latestHeight}</span>
+              <span className="text-steel-muted">Estatura actual:</span>
+              <span className="font-bold text-steel-text">{latestHeight}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-400">Entrenamientos registrados:</span>
-              <span className="font-bold text-white">{workoutCount}</span>
+              <span className="text-steel-muted">Entrenamientos registrados:</span>
+              <span className="font-bold text-steel-text">{workoutCount}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-400">Registros de mediciones:</span>
-              <span className="font-bold text-white">{measurementsCount}</span>
+              <span className="text-steel-muted">Registros de mediciones:</span>
+              <span className="font-bold text-steel-text">{measurementsCount}</span>
             </div>
           </div>
         </div> 
@@ -220,14 +217,14 @@ export const ProfileView: React.FC = () => {
         <div className="space-y-3 pt-2">
           <button
             onClick={handleLogoutClick}
-            className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition duration-200 cursor-pointer"
+            className="w-full bg-steel-coral/15 border border-steel-coral text-steel-coral hover:bg-steel-coral/25 font-bold py-2.5 px-4 rounded-xl transition-colors cursor-pointer shadow-sm"
           >
             Cerrar Sesión
           </button>
 
           <button
             disabled
-            className="w-full bg-gray-700 text-gray-400 font-semibold py-2 px-4 rounded cursor-not-allowed border border-gray-600"
+            className="w-full bg-steel-surface-light text-steel-muted font-semibold py-2.5 px-4 rounded-xl cursor-not-allowed border border-steel-border opacity-60"
             title="Próximamente"
           >
             Eliminar Cuenta (Próximamente)

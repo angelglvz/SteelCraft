@@ -8,7 +8,6 @@ export const MeasurementsView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Campos del formulario (peso obligatorio, estatura y grasa opcionales)
   const [weightKg, setWeightKg] = useState<string>('');
   const [heightCm, setHeightCm] = useState<string>('');
   const [bodyFatPct, setBodyFatPct] = useState<string>('');
@@ -16,7 +15,6 @@ export const MeasurementsView: React.FC = () => {
     new Date().toISOString().slice(0, 16)
   );
 
-  // Función interna para recargar la lista cuando sea necesario
   const fetchMeasurements = async () => {
     try {
       const data = await measurementService.getMeasurements();
@@ -63,12 +61,10 @@ export const MeasurementsView: React.FC = () => {
       await measurementService.createMeasurement(payload);
       setSuccessMsg('¡Medida registrada con éxito!');
       
-      // Limpiar formulario básico
       setWeightKg('');
       setHeightCm('');
       setBodyFatPct('');
 
-      // Recargar lista
       await fetchMeasurements();
     } catch (err: unknown) {
       console.error('Error al guardar medida:', err);
@@ -78,21 +74,20 @@ export const MeasurementsView: React.FC = () => {
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-8">
+    <div className="px-6 py-8 w-full min-h-screen space-y-8 bg-steel-base font-hurme">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-indigo-400">Medidas Corporales</h1>
+        <h1 className="text-3xl font-extrabold tracking-wide text-steel-text drop-shadow-sm">Medidas Corporales</h1>
       </div>
 
-      {/* Formulario de Registro */}
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 shadow-md">
-        <h2 className="text-xl font-semibold mb-4 text-gray-200">Añadir Nueva Medición</h2>
+      <div className="p-6 rounded-xl border shadow-xl bg-steel-surface border-steel-border">
+        <h2 className="text-xl font-bold mb-4 text-steel-accent">Añadir Nueva Medición</h2>
         
-        {error && <div className="mb-4 p-3 bg-red-500/20 border border-red-500 text-red-300 rounded text-sm">{error}</div>}
-        {successMsg && <div className="mb-4 p-3 bg-green-500/20 border border-green-500 text-green-300 rounded text-sm">{successMsg}</div>}
+        {error && <div className="mb-4 p-3 rounded-lg text-sm border font-medium bg-steel-coral/15 border-steel-coral text-steel-text">{error}</div>}
+        {successMsg && <div className="mb-4 p-3 rounded-lg text-sm border font-medium bg-steel-accent/15 border-steel-accent text-steel-text">{successMsg}</div>}
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Peso (kg) *</label>
+            <label className="block text-sm mb-1 font-semibold text-steel-text">Peso (kg) *</label>
             <input
               type="number"
               step="0.1"
@@ -100,48 +95,48 @@ export const MeasurementsView: React.FC = () => {
               placeholder="Ej. 75.5"
               value={weightKg}
               onChange={(e) => setWeightKg(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-indigo-500"
+              className="w-full px-4 py-3 rounded-lg text-steel-text placeholder-steel-muted/60 border bg-steel-surface-light border-steel-border focus:outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Estatura (cm) (Opcional)</label>
+            <label className="block text-sm mb-1 font-semibold text-steel-text">Estatura (cm) (Opcional)</label>
             <input
               type="number"
               step="0.1"
               placeholder="Ej. 178"
               value={heightCm}
               onChange={(e) => setHeightCm(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-indigo-500"
+              className="w-full px-4 py-3 rounded-lg text-steel-text placeholder-steel-muted/60 border bg-steel-surface-light border-steel-border focus:outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">% Grasa Corporal (Opcional)</label>
+            <label className="block text-sm mb-1 font-semibold text-steel-text">% Grasa Corporal (Opcional)</label>
             <input
               type="number"
               step="0.1"
               placeholder="Ej. 15.0"
               value={bodyFatPct}
               onChange={(e) => setBodyFatPct(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-indigo-500"
+              className="w-full px-4 py-3 rounded-lg text-steel-text placeholder-steel-muted/60 border bg-steel-surface-light border-steel-border focus:outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Fecha y Hora</label>
+            <label className="block text-sm mb-1 font-semibold text-steel-text">Fecha y Hora</label>
             <input
               type="datetime-local"
               value={measuredAt}
               onChange={(e) => setMeasuredAt(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-indigo-500"
+              className="w-full px-4 py-3 rounded-lg text-steel-text placeholder-steel-muted/60 border bg-steel-surface-light border-steel-border focus:outline-none transition-colors"
             />
           </div>
 
           <div className="md:col-span-2 mt-2">
             <button
               type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 px-4 rounded transition cursor-pointer"
+              className="w-full font-bold py-3.5 px-4 rounded-full transition-transform active:scale-95 cursor-pointer shadow-lg bg-steel-accent text-steel-base hover:opacity-90"
             >
               Guardar Medición
             </button>
@@ -149,38 +144,37 @@ export const MeasurementsView: React.FC = () => {
         </form>
       </div>
 
-      {/* Historial de Medidas */}
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 shadow-md">
-        <h2 className="text-xl font-semibold mb-4 text-gray-200">Historial de Progreso</h2>
+      <div className="p-6 rounded-xl border shadow-xl bg-steel-surface border-steel-border">
+        <h2 className="text-xl font-bold mb-4 text-steel-accent">Historial de Progreso</h2>
         
         {loading ? (
-          <p className="text-gray-400 text-center py-4">Cargando mediciones...</p>
+          <p className="text-center py-4 text-steel-text font-medium">Cargando mediciones...</p>
         ) : measurements.length === 0 ? (
-          <p className="text-gray-500 text-center py-4">No hay mediciones registradas todavía.</p>
+          <p className="text-center py-4 font-medium text-steel-muted">No hay mediciones registradas todavía.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-gray-800 text-gray-400 text-sm">
-                  <th className="py-3 px-4">Fecha</th>
-                  <th className="py-3 px-4">Peso</th>
-                  <th className="py-3 px-4">Estatura</th>
-                  <th className="py-3 px-4">% Grasa</th>
+                <tr className="border-b text-sm font-bold tracking-wider bg-steel-base/60 border-steel-border text-steel-text">
+                  <th className="py-3.5 px-4">Fecha</th>
+                  <th className="py-3.5 px-4">Peso</th>
+                  <th className="py-3.5 px-4">Estatura</th>
+                  <th className="py-3.5 px-4">% Grasa</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800 text-sm">
+              <tbody className="divide-y divide-steel-border/60 text-sm">
                 {measurements.map((m) => (
-                  <tr key={m.id} className="hover:bg-gray-800/50 transition">
-                    <td className="py-3 px-4 text-gray-300">
+                  <tr key={m.id} className="hover:bg-white/5 transition-colors">
+                    <td className="py-3.5 px-4 font-semibold text-steel-text">
                       {new Date(m.measured_at).toLocaleDateString()} {new Date(m.measured_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </td>
-                    <td className="py-3 px-4 font-bold text-indigo-400">
+                    <td className="py-3.5 px-4 font-bold text-steel-accent">
                       {m.weight_kg !== undefined && m.weight_kg !== null ? `${m.weight_kg} kg` : '-'}
                     </td>
-                    <td className="py-3 px-4 text-gray-300">
+                    <td className="py-3.5 px-4 font-medium text-steel-muted">
                       {m.height_cm !== undefined && m.height_cm !== null ? `${m.height_cm} cm` : '-'}
                     </td>
-                    <td className="py-3 px-4 text-gray-300">
+                    <td className="py-3.5 px-4 font-medium text-steel-muted">
                       {m.body_fat_pct !== undefined && m.body_fat_pct !== null ? `${m.body_fat_pct}%` : '-'}
                     </td>
                   </tr>

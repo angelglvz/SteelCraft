@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export const Sidebar: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
+interface SidebarProps {
+  collapsed: boolean;
+  setCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
   const { role, logout } = useAuth();
   const location = useLocation();
   const isAdmin = role === 'admin';
@@ -18,13 +22,13 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className={`bg-gray-900 border-r border-gray-800 transition-all duration-300 flex flex-col ${collapsed ? 'w-20' : 'w-64'} min-h-screen`}>
+    <aside className={`bg-steel-surface border-r border-steel-border transition-all duration-300 flex flex-col ${collapsed ? 'w-20' : 'w-64'} h-screen fixed inset-y-0 left-0 z-50 font-hurme shadow-2xl`}>
       {/* Cabecera del Sidebar con el botón de colapsar (3 barritas) */}
-      <div className="p-4 flex items-center justify-between border-b border-gray-800">
-        {!collapsed && <span className="font-bold text-xl text-indigo-400">SteelCraft</span>}
+      <div className="p-4 flex items-center justify-between border-b border-steel-border h-16 shrink-0">
+        {!collapsed && <span className="font-bold text-xl text-steel-accent tracking-wide truncate">SteelCraft</span>}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-2 rounded hover:bg-gray-800 text-gray-400 hover:text-white transition cursor-pointer mx-auto"
+          className="p-2 rounded hover:bg-steel-surface-light text-steel-muted hover:text-steel-text transition cursor-pointer mx-auto"
           title="Alternar menú"
         >
           <div className="space-y-1">
@@ -35,8 +39,8 @@ export const Sidebar: React.FC = () => {
         </button>
       </div>
 
-      {/* Enlaces de navegación */}
-      <nav className="flex-1 p-4 space-y-2">
+      {/* Enlaces de navegación con scroll interno si fuera necesario */}
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
@@ -45,27 +49,27 @@ export const Sidebar: React.FC = () => {
               to={item.path}
               className={`flex items-center space-x-3 p-3 rounded-lg transition ${
                 isActive
-                  ? 'bg-indigo-600 text-white font-semibold'
-                  : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  ? 'bg-steel-accent text-steel-base font-bold shadow-sm'
+                  : 'text-steel-muted hover:bg-steel-surface-light hover:text-steel-text'
               }`}
               title={item.label}
             >
-              <span className="text-xl">{item.icon}</span>
+              <span className="text-xl shrink-0">{item.icon}</span>
               {!collapsed && <span className="truncate">{item.label}</span>}
             </Link>
           );
         })}
       </nav>
 
-      {/* Botón de cerrar sesión */}
-      <div className="p-4 border-t border-gray-800">
+      {/* Botón de cerrar sesión fijo en la parte inferior */}
+      <div className="p-4 border-t border-steel-border shrink-0">
         <button
           onClick={logout}
-          className={`flex items-center space-x-3 w-full p-3 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition cursor-pointer`}
+          className="flex items-center space-x-3 w-full p-3 rounded-lg text-steel-coral bg-steel-coral/15 border border-steel-coral/30 hover:bg-steel-coral/25 transition cursor-pointer font-semibold"
           title="Cerrar sesión"
         >
-          <span className="text-xl">🚪</span>
-          {!collapsed && <span>Cerrar Sesión</span>}
+          <span className="text-xl shrink-0">🚪</span>
+          {!collapsed && <span className="truncate">Cerrar Sesión</span>}
         </button>
       </div>
     </aside>

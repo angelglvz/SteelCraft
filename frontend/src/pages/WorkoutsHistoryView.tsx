@@ -3,7 +3,6 @@ import { workoutService } from '../services/workoutService';
 import { exerciseService } from '../services/exerciseService';
 import type { Workout, Exercise } from '../types';
 
-
 export const WorkoutsHistoryView: React.FC = () => {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [exercisesCatalog, setExercisesCatalog] = useState<Map<number, string>>(new Map());
@@ -19,7 +18,6 @@ export const WorkoutsHistoryView: React.FC = () => {
       .then(([workoutsData, exercisesData]) => {
         setWorkouts(workoutsData);
         
-        // Crear un mapa de ID -> Nombre del ejercicio del catálogo
         const catalogMap = new Map<number, string>();
         exercisesData.forEach((ex: Exercise) => {
           catalogMap.set(ex.id, ex.name);
@@ -122,43 +120,43 @@ export const WorkoutsHistoryView: React.FC = () => {
   const getIntensityClass = (workoutsList: Workout[], isSelected: boolean) => {
     const count = workoutsList.reduce((acc, w) => acc + (w.exercises || w.workout_exercises || []).length, 0);
     
-    let baseClass = 'bg-gray-800 hover:bg-gray-700';
+    let baseClass = 'bg-steel-surface-light hover:bg-steel-border';
     if (count > 0 && count <= 2) baseClass = 'bg-emerald-900 hover:bg-emerald-800';
     else if (count > 2 && count <= 4) baseClass = 'bg-emerald-700 hover:bg-emerald-600';
     else if (count > 4 && count <= 8) baseClass = 'bg-emerald-500 hover:bg-emerald-400';
     else if (count > 8) baseClass = 'bg-emerald-300 hover:bg-emerald-200 shadow-sm shadow-emerald-400/50';
 
     if (isSelected) {
-      return `${baseClass} ring-2 ring-indigo-400 ring-offset-2 ring-offset-gray-900`;
+      return `${baseClass} ring-2 ring-steel-accent ring-offset-2 ring-offset-steel-base`;
     }
     return baseClass;
   };
 
   if (loading) {
-    return <div className="p-8 text-white">Cargando historial de entrenamientos...</div>;
+    return <div className="p-8 text-steel-text bg-steel-base min-h-screen w-full">Cargando historial de entrenamientos...</div>;
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto text-white space-y-8">
+    <div className="px-6 py-8 w-full min-h-screen space-y-8 bg-steel-base font-hurme">
       <div>
-        <h1 className="text-3xl font-bold text-indigo-400">Historial y Actividad</h1>
-        <p className="text-gray-400 text-sm mt-1">Visualiza tu constancia anual y selecciona un día para ver los detalles.</p>
+        <h1 className="text-3xl font-extrabold text-steel-accent tracking-wide drop-shadow-sm">Historial y Actividad</h1>
+        <p className="text-steel-muted text-sm mt-1">Visualiza tu constancia anual y selecciona un día para ver los detalles.</p>
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow">
-        <h3 className="text-sm font-semibold text-gray-400 mb-6">
+      <div className="p-6 rounded-xl border shadow-xl bg-steel-surface border-steel-border">
+        <h3 className="text-sm font-bold text-steel-muted mb-6">
           {totalYearWorkouts} entrenamientos registrados en el último año
         </h3>
 
         <div ref={scrollContainerRef} className="overflow-x-auto pb-4">
           <div className="min-w-[750px]">
-            <div className="relative h-5 text-xs text-gray-400 mb-2 pl-7">
+            <div className="relative h-5 text-xs text-steel-muted mb-2 pl-7">
               {monthsHeader.map((m, idx) => {
                 const leftPosition = m.weekIndex * 20; 
                 return (
                   <span
                     key={idx}
-                    className="absolute"
+                    className="absolute font-semibold"
                     style={{ left: `${7 + leftPosition}px` }}
                   >
                     {m.name}
@@ -168,7 +166,7 @@ export const WorkoutsHistoryView: React.FC = () => {
             </div>
 
             <div className="flex">
-              <div className="flex flex-col text-xs text-gray-400 pr-3 select-none justify-between" style={{ height: '136px' }}>
+              <div className="flex flex-col text-xs text-steel-muted pr-3 select-none justify-between" style={{ height: '136px' }}>
                 <span className="leading-none">Lun</span>
                 <span className="leading-none"></span>
                 <span className="leading-none">Mié</span>
@@ -199,30 +197,20 @@ export const WorkoutsHistoryView: React.FC = () => {
             </div>
           </div>
         </div>
-
-        <div className="flex items-center justify-end space-x-2 mt-4 pt-4 border-t border-gray-800/60 text-xs text-gray-400">
-          <span>Menos</span>
-          <div className="w-3 h-3 bg-gray-800 rounded-sm"></div>
-          <div className="w-3 h-3 bg-emerald-900 rounded-sm"></div>
-          <div className="w-3 h-3 bg-emerald-700 rounded-sm"></div>
-          <div className="w-3 h-3 bg-emerald-500 rounded-sm"></div>
-          <div className="w-3 h-3 bg-emerald-300 rounded-sm"></div>
-          <span>Más</span>
-        </div>
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-4 text-indigo-300">
-          Entrenamiento(s) del día: <span className="text-white">{selectedDate || 'Ninguna fecha seleccionada'}</span>
+      <div className="p-6 rounded-xl border shadow-xl bg-steel-surface border-steel-border">
+        <h2 className="text-xl font-bold mb-4 text-steel-accent">
+          Entrenamiento(s) del día: <span className="text-steel-text">{selectedDate || 'Ninguna fecha seleccionada'}</span>
         </h2>
         
         {selectedWorkouts.length > 0 ? (
           <div className="space-y-6">
             {selectedWorkouts.map((workout, wIdx) => (
-              <div key={workout.id || wIdx} className="space-y-4 bg-gray-950 p-4 rounded-lg border border-gray-800">
-                <div className="flex justify-between items-center border-b border-gray-800 pb-3">
-                  <span className="text-gray-300 text-sm font-semibold">Entrenamiento #{wIdx + 1}</span>
-                  <span className="bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full text-xs">
+              <div key={workout.id || wIdx} className="space-y-4 p-4 rounded-xl border bg-steel-base border-steel-border">
+                <div className="flex justify-between items-center border-b border-steel-border pb-3">
+                  <span className="text-steel-text text-sm font-bold">Entrenamiento #{wIdx + 1}</span>
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-steel-accent/20 border border-steel-accent/40 text-steel-accent">
                     {(workout.exercises || workout.workout_exercises || []).length} ejercicios
                   </span>
                 </div>
@@ -238,15 +226,15 @@ export const WorkoutsHistoryView: React.FC = () => {
                       `Ejercicio #${exerciseId || idx + 1}`;
 
                     return (
-                      <div key={idx} className="bg-gray-900 p-3 rounded border border-gray-800/60">
-                        <span className="font-semibold text-indigo-200">
+                      <div key={idx} className="p-3 rounded-lg border bg-steel-surface border-steel-border">
+                        <span className="font-bold text-steel-accent">
                           {exerciseName}
                         </span>
                         <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
                           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                           {(we.sets || []).map((set: any, sIdx: number) => (
-                            <div key={sIdx} className="bg-gray-950 p-1.5 rounded text-xs text-gray-300 text-center border border-gray-800">
-                              Serie {set.set_number}: <span className="text-white font-bold">{set.reps} reps</span> / {set.weight_kg ?? set.weight ?? 0} kg
+                            <div key={sIdx} className="p-2 rounded-md text-xs text-center border bg-steel-surface-light border-steel-border text-steel-muted">
+                              Serie {set.set_number}: <span className="text-steel-text font-bold">{set.reps} reps</span> / {set.weight_kg ?? set.weight ?? 0} kg
                             </div>
                           ))}
                         </div>
@@ -258,7 +246,7 @@ export const WorkoutsHistoryView: React.FC = () => {
             ))}
           </div>
         ) : (
-          <p className="text-gray-500">No hay entrenamientos registrados en esta fecha.</p>
+          <p className="text-steel-muted">No hay entrenamientos registrados en esta fecha.</p>
         )}
       </div>
     </div>
