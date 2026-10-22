@@ -15,9 +15,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
   const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<string | null>(localStorage.getItem('role'));
+  const [role, setRole] = useState<string | null>(() => localStorage.getItem('role'));
   const isAdmin = role === 'admin' || role === 'ADMIN';
 
   const handleLogout = () => {
@@ -28,54 +28,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('role');
   };
 
+  // Efecto para sincronizar el usuario al iniciar la app si hay un token guardado
   useEffect(() => {
-    if (token) {
+    const initAuth = async () => {
+      if (!token) {
+        setUser(null);
+        return;
+      }
+
       localStorage.setItem('token', token);
-      
-      const fetchUserData = async () => {
-        try {
-          const userData = await authService.getMe();
-          setUser(userData);
-          if (userData.role) {
-            setRole(userData.role);
-          }
-        } catch (err) {
-          console.error('Error al obtener el usuario autenticado:', err);
+
+      try {
+        const userData = await authService.getMe();
+        setUser(userData);
+        if (userData.role) {
+          setRole(userData.role);
+          localStorage.setItem('role', userData.role);
+        }
+      } catch (err: unknown) {
+        console.error('Sesión inválida o expirada:', err);
+        // Comprobación segura de error de Axios sin usar 'any'
+        const axiosError = err as { response?: { status?: number } };
+        if (axiosError?.response?.status === 401) {
           handleLogout();
         }
-      };
+      }
+    };
 
-      fetchUserData();
-    } else {
-      localStorage.removeItem('token');
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setUser(null);
-    }
-
-    if (role) {
-      localStorage.setItem('role', role);
-    } else {
-      localStorage.removeItem('role');
-    }
-  }, [token, role]);
+    initAuth();
+  }, [token]);
 
   const handleLogin = async (email: string, pass: string) => {
     try {
+      // 1. Obtenemos el token de acceso
       const data = await authService.login(email, pass);
-      setToken(data.access_token);
-      if (data.role) {
+      const accessToken = data.access_token;
+      
+      setToken(accessToken);
+      localStorage.setItem('token', accessToken);
+
+      // 2. Obtenemos los datos del usuario inmediatamente de forma sincrónica para evitar el bug del doble login
+      const userData = await authService.getMe();
+      setUser(userData);
+
+      if (userData.role) {
+        setRole(userData.role);
+        localStorage.setItem('role', userData.role);
+      } else if (data.role) {
         setRole(data.role);
         localStorage.setItem('role', data.role);
       }
-      const userData = await authService.getMe();
-      setUser(userData);
     } catch (error) {
       console.error('Error en el login:', error);
       throw error;
     }
   };
-
-  
 
   return (
     <AuthContext.Provider
