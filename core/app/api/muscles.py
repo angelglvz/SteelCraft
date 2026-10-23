@@ -1,13 +1,14 @@
 """SteelCraft - Endpoints del Catálogo de Músculos."""
 
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Muscle, User, UserRole
 from app.schemas import MuscleCreate, MuscleResponse
-from app.deps import get_current_user  # Usaremos esta dependencia para validar roles si procede
+from app.deps import get_current_user
+from app.limiter import limiter
 
 router = APIRouter(prefix="/muscles", tags=["Muscles"])
 
@@ -20,12 +21,15 @@ def list_muscles(db: Annotated[Session, Depends(get_db)]):
 
 
 @router.post("/", response_model=MuscleResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("20/minute")
 def create_muscle(
+    request: Request,
     muscle_in: MuscleCreate,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     """Crea un nuevo músculo en el catálogo (Solo administradores)."""
+    _ = request
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -49,13 +53,17 @@ def create_muscle(
     db.refresh(db_muscle)
     return db_muscle
 
+
 @router.delete("/{muscle_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("30/minute")
 def delete_muscle(
+    request: Request,
     muscle_id: int,  
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     """Elimina un músculo del catálogo por su ID (Solo administradores)."""
+    _ = request
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

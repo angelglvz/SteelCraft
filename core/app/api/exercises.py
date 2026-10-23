@@ -1,7 +1,7 @@
 """SteelCraft - Endpoints del Catálogo de Ejercicios."""
 
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import select
 
@@ -9,6 +9,7 @@ from app.database import get_db
 from app.models import Exercise, ExerciseMuscle, User, UserRole
 from app.schemas import ExerciseCreate, ExerciseResponse
 from app.deps import get_current_user
+from app.limiter import limiter
 
 router = APIRouter(prefix="/exercises", tags=["Exercises"])
 
@@ -25,12 +26,15 @@ def list_exercises(db: Annotated[Session, Depends(get_db)]):
 
 
 @router.post("/", response_model=ExerciseResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("20/minute")
 def create_exercise(
+    request: Request,
     exercise_in: ExerciseCreate,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    """Crea un nuevo ejercicio en el catálogo con sus músculos asociados (Solo administradores)[cite: 3]."""
+    """Crea un nuevo ejercicio en el catálogo con sus músculos asociados (Solo administradores)."""
+    _ = request
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -51,9 +55,8 @@ def create_exercise(
         is_active=exercise_in.is_active,
     )
     db.add(db_exercise)
-    db.flush()  # Para obtener el id generado del ejercicio[cite: 3]
+    db.flush()
 
-    # Asociar músculos si se han proporcionado
     for m_link in exercise_in.muscles:
         db_muscle_link = ExerciseMuscle(
             exercise_id=db_exercise.id,
@@ -64,7 +67,6 @@ def create_exercise(
 
     db.commit()
 
-    # Recargar el ejercicio con las relaciones cargadas para que la respuesta serialice el nombre del músculo correctamente
     stmt = (
         select(Exercise)
         .options(selectinload(Exercise.muscles).selectinload(ExerciseMuscle.muscle))
@@ -73,13 +75,17 @@ def create_exercise(
     db_exercise_loaded = db.scalar(stmt)
     return db_exercise_loaded
 
+
 @router.delete("/{exercise_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("30/minute")
 def delete_exercise(
+    request: Request,
     exercise_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     """Elimina un ejercicio del catálogo por su ID (Solo administradores)."""
+    _ = request
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

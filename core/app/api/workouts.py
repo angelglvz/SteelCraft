@@ -2,7 +2,7 @@
 
 from typing import Annotated
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import select
 
@@ -10,6 +10,7 @@ from app.database import get_db
 from app.models import Workout, WorkoutExercise, SetLog, User
 from app.schemas import WorkoutCreate, WorkoutResponse
 from app.deps import get_current_user
+from app.limiter import limiter
 
 router = APIRouter(prefix="/workouts", tags=["Workouts"])
 
@@ -21,7 +22,7 @@ def list_my_workouts(
     limit: int = 1000,
     offset: int = 0,
 ):
-    """Devuelve la lista de entrenamientos del usuario autenticado, ordenados por fecha descendente."""
+    """Devuelve la lista de entrenamientos del usuario autenticado."""
     workouts = db.scalars(
         select(Workout)
         .where(Workout.user_id == current_user.id)
@@ -36,7 +37,9 @@ def list_my_workouts(
 
 
 @router.post("/", response_model=WorkoutResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("20/minute")  # <--- Limitamos las peticiones POST de creación
 def create_workout(
+    request: Request,
     workout_in: WorkoutCreate,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -51,9 +54,8 @@ def create_workout(
         source=workout_in.source,
     )
     db.add(db_workout)
-    db.flush()  # Para obtener el ID del entrenamiento generado
+    db.flush()
 
-    # Crear ejercicios y series anidadas
     for we_in in workout_in.exercises:
         db_we = WorkoutExercise(
             workout_id=db_workout.id,
@@ -78,7 +80,6 @@ def create_workout(
 
     db.commit()
     
-    # Recargar con relaciones para devolver la respuesta completa con los IDs generados
     statement = (
         select(Workout)
         .where(Workout.id == db_workout.id)
@@ -89,12 +90,14 @@ def create_workout(
 
 
 @router.delete("/{workout_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("30/minute")  # <--- Limitamos también las eliminaciones masivas
 def delete_workout(
+    request: Request,
     workout_id: UUID,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    """Elimina un entrenamiento propio por su ID (la eliminación en cascada borra sus ejercicios y series)."""
+    """Elimina un entrenamiento propio por su ID."""
     workout = db.scalar(
         select(Workout)
         .where(Workout.id == workout_id)

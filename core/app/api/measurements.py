@@ -2,7 +2,7 @@
 
 from typing import Annotated
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
@@ -10,6 +10,7 @@ from app.database import get_db
 from app.models import BodyMeasurement, User
 from app.schemas import BodyMeasurementCreate, BodyMeasurementResponse
 from app.deps import get_current_user
+from app.limiter import limiter
 
 router = APIRouter(prefix="/measurements", tags=["Body Measurements"])
 
@@ -29,13 +30,15 @@ def list_my_measurements(
 
 
 @router.post("/", response_model=BodyMeasurementResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("20/minute")
 def create_measurement(
+    request: Request,
     measurement_in: BodyMeasurementCreate,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     """Registra una nueva medida corporal asociada al usuario autenticado."""
-    # Validación de negocio opcional: asegurar que al menos un valor principal esté presente
+    _ = request
     if not any([measurement_in.weight_kg, measurement_in.height_cm, measurement_in.body_fat_pct]):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -58,12 +61,15 @@ def create_measurement(
 
 
 @router.delete("/{measurement_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("30/minute")
 def delete_measurement(
+    request: Request,
     measurement_id: UUID,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     """Elimina una medida corporal propia por su ID."""
+    _ = request
     measurement = db.scalar(
         select(BodyMeasurement)
         .where(BodyMeasurement.id == measurement_id)

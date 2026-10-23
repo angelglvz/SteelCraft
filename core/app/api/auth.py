@@ -5,7 +5,7 @@ import os
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -14,12 +14,14 @@ from app.database import get_db
 from app.models import User, UserRole
 from app.schemas import Token, UserCreate, UserResponse, UserUpdate
 from app.security import create_access_token, get_password_hash, verify_password, get_current_active_user
+from app.limiter import limiter
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def register_user(user_in: UserCreate, db: Annotated[Session, Depends(get_db)]):
+@limiter.limit("5/minute")
+def register_user(request: Request, user_in: UserCreate, db: Annotated[Session, Depends(get_db)]):
     """Registra un nuevo usuario en la plataforma."""
     email_clean = user_in.email.strip().lower()
     existing_user = db.query(User).filter(User.email == email_clean).first()
@@ -29,7 +31,6 @@ def register_user(user_in: UserCreate, db: Annotated[Session, Depends(get_db)]):
             detail="The user with this email already exists in the system.",
         )
 
-    # Validar que el username sea único si se proporciona
     username_clean = None
     if user_in.username:
         username_clean = user_in.username.strip()
@@ -53,13 +54,13 @@ def register_user(user_in: UserCreate, db: Annotated[Session, Depends(get_db)]):
 
 
 @router.post("/login", response_model=Token)
+@limiter.limit("5/minute")
 def login(
+    request: Request,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Annotated[Session, Depends(get_db)],
 ):
-    """
-    Inicia sesión y genera un token JWT de acceso.
-    """
+    """Inicia sesión y genera un token JWT de acceso."""
     email_input = form_data.username.strip().lower()
 
     if "@" not in email_input:
@@ -95,12 +96,14 @@ def get_user_me(current_user: Annotated[User, Depends(get_current_active_user)])
     return current_user
 
 @router.patch("/users/me", response_model=UserResponse)
+@limiter.limit("20/minute")
 def update_user_profile(
+    request: Request,
     user_in: UserUpdate, 
     current_user: Annotated[User, Depends(get_current_active_user)], 
     db: Annotated[Session, Depends(get_db)]
 ):
-    """Edita la información del perfil del usuario actual (username, birth_date, etc.)."""
+    """Edita la información del perfil del usuario actual."""
     if user_in.username is not None:
         username_clean = user_in.username.strip()
         existing = db.query(User).filter(func.lower(User.username) == username_clean.lower(), User.id != current_user.id).first()
@@ -120,7 +123,9 @@ def update_user_profile(
 
 
 @router.post("/users/me/avatar", response_model=UserResponse)
+@limiter.limit("10/minute")
 async def upload_user_avatar(
+    request: Request,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
@@ -134,8 +139,6 @@ async def upload_user_avatar(
                 detail="Formato no válido. Solo se permiten imágenes PNG o JPG.",
             )
 
-        # Definimos la ruta absoluta apuntando a la raíz del proyecto (fuera de core/ si es necesario)
-        # Sube desde app/api/auth.py hasta la raíz donde debe residir 'uploads'
         BASE_DIR = Path(__file__).resolve().parent.parent.parent
         upload_dir = BASE_DIR / "uploads" / "avatars"
         os.makedirs(upload_dir, exist_ok=True)
@@ -153,7 +156,6 @@ async def upload_user_avatar(
         with open(file_path_full, "wb") as f:
             f.write(contents)
 
-        # Guardamos en la base de datos la ruta relativa web que espera StaticFiles (ej: uploads/avatars/...)
         relative_db_path = f"uploads/avatars/{file_name}"
         current_user.avatar_key = relative_db_path
         
@@ -163,7 +165,6 @@ async def upload_user_avatar(
         return current_user
 
     except Exception as e:
-        print(f"CRITICAL ERROR UPLOADING AVATAR: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error interno al procesar la imagen: {str(e)}"
