@@ -6,3 +6,5 @@ exports/
 *.csv
 scripts/
 recursos_escondidos.txt
+/node_modules/
+/frontend/node_modules/
