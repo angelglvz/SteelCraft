@@ -18,7 +18,7 @@ router = APIRouter(prefix="/workouts", tags=["Workouts"])
 def list_my_workouts(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    limit: int = 20,
+    limit: int = 1000,
     offset: int = 0,
 ):
     """Devuelve la lista de entrenamientos del usuario autenticado, ordenados por fecha descendente."""

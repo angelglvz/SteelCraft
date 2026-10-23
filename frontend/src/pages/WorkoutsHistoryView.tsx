@@ -8,6 +8,10 @@ export const WorkoutsHistoryView: React.FC = () => {
   const [exercisesCatalog, setExercisesCatalog] = useState<Map<number, string>>(new Map());
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  
+  // Estado para el año seleccionado en el calendario (por defecto el año actual)
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -36,46 +40,59 @@ export const WorkoutsHistoryView: React.FC = () => {
       });
   }, []);
 
-  useEffect(() => {
-    if (!loading && scrollContainerRef.current) {
-      scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
-    }
-  }, [loading]);
-
+  // Mapear TODOS los entrenamientos por fecha y extraer los años disponibles
   const workoutsByDate = new Map<string, Workout[]>();
-  let totalYearWorkouts = 0;
+  const availableYearsSet = new Set<number>([new Date().getFullYear()]);
 
   workouts.forEach(w => {
     const dateStr = (w.performed_on || w.date || '').split('T')[0];
     if (!dateStr) return;
 
+    const year = parseInt(dateStr.split('-')[0], 10);
+    if (!isNaN(year)) {
+      availableYearsSet.add(year);
+    }
+
     const existing = workoutsByDate.get(dateStr) || [];
     workoutsByDate.set(dateStr, [...existing, w]);
-    totalYearWorkouts++;
   });
 
-  const generateWeeksData = () => {
-    const weeks: { days: { dateStr: string; workoutsList: Workout[]; dateObj: Date }[] }[] = [];
-    const today = new Date();
-    
-    const startDate = new Date(today);
-    startDate.setDate(startDate.getDate() - 364);
+  const availableYears = Array.from(availableYearsSet).sort((a, b) => b - a);
 
+  // Generar las semanas para el año natural completo (del 1 de enero al 31 de diciembre)
+  const generateYearWeeksData = (year: number) => {
+    const weeks: { days: { dateStr: string; workoutsList: Workout[]; dateObj: Date; isCurrentYear: boolean }[] }[] = [];
+    
+    const startDate = new Date(year, 0, 1); // 1 de enero
+    const endDate = new Date(year, 11, 31); // 31 de diciembre
+
+    // Alinear al lunes de la semana del 1 de enero
     const dayOfWeek = startDate.getDay();
     const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
     startDate.setDate(startDate.getDate() + diffToMonday);
 
-    let currentWeek: { dateStr: string; workoutsList: Workout[]; dateObj: Date }[] = [];
+    let currentWeek: { dateStr: string; workoutsList: Workout[]; dateObj: Date; isCurrentYear: boolean }[] = [];
 
     const curr = new Date(startDate);
-    while (curr <= today) {
-      const dateStr = curr.toISOString().split('T')[0];
+    while (curr <= endDate || currentWeek.length > 0) {
+      if (currentWeek.length === 0 && curr > endDate) {
+        break;
+      }
+
+      // Formatear la fecha localmente en formato YYYY-MM-DD sin desfases UTC
+      const yearStr = curr.getFullYear();
+      const monthStr = String(curr.getMonth() + 1).padStart(2, '0');
+      const dayStr = String(curr.getDate()).padStart(2, '0');
+      const dateStr = `${yearStr}-${monthStr}-${dayStr}`;
+
       const dayWorkouts = workoutsByDate.get(dateStr) || [];
+      const isCurrentYear = curr.getFullYear() === year;
 
       currentWeek.push({
         dateStr,
         workoutsList: dayWorkouts,
         dateObj: new Date(curr),
+        isCurrentYear,
       });
 
       if (currentWeek.length === 7) {
@@ -86,25 +103,22 @@ export const WorkoutsHistoryView: React.FC = () => {
       curr.setDate(curr.getDate() + 1);
     }
 
-    if (currentWeek.length > 0) {
-      weeks.push({ days: currentWeek });
-    }
-
     return weeks;
   };
 
-  const weeksData = generateWeeksData();
+  const weeksData = generateYearWeeksData(selectedYear);
 
+  // Calcular cabeceras de meses para el año seleccionado
   const getMonthsHeader = () => {
     const monthsMap: { name: string; weekIndex: number }[] = [];
     let lastMonth = -1;
 
     weeksData.forEach((week, wIdx) => {
-      const firstDayOfWeek = week.days[0].dateObj;
-      const month = firstDayOfWeek.getMonth();
+      const validDay = week.days.find(d => d.isCurrentYear) || week.days[0];
+      const month = validDay.dateObj.getMonth();
       
       if (month !== lastMonth) {
-        const rawMonth = firstDayOfWeek.toLocaleString('es-ES', { month: 'short' });
+        const rawMonth = validDay.dateObj.toLocaleString('es-ES', { month: 'short' });
         const monthName = rawMonth.charAt(0).toUpperCase() + rawMonth.replace('.', '').slice(1);
         monthsMap.push({ name: monthName, weekIndex: wIdx });
         lastMonth = month;
@@ -115,9 +129,22 @@ export const WorkoutsHistoryView: React.FC = () => {
   };
 
   const monthsHeader = getMonthsHeader();
+  
+  // Calcular el número real de entrenamientos en el año seleccionado (sin límites de 20 entradas)
+  const yearWorkoutsCount = Array.from(workoutsByDate.entries()).reduce((acc, [dateStr, list]) => {
+    if (dateStr.startsWith(selectedYear.toString())) {
+      return acc + list.length;
+    }
+    return acc;
+  }, 0);
+
   const selectedWorkouts = selectedDate ? (workoutsByDate.get(selectedDate) || []) : [];
 
-  const getIntensityClass = (workoutsList: Workout[], isSelected: boolean) => {
+  const getIntensityClass = (workoutsList: Workout[], isSelected: boolean, isCurrentYear: boolean) => {
+    if (!isCurrentYear) {
+      return 'opacity-10 bg-steel-surface-light pointer-events-none';
+    }
+
     const count = workoutsList.reduce((acc, w) => acc + (w.exercises || w.workout_exercises || []).length, 0);
     
     let baseClass = 'bg-steel-surface-light hover:bg-steel-border';
@@ -138,18 +165,37 @@ export const WorkoutsHistoryView: React.FC = () => {
 
   return (
     <div className="px-4 sm:px-6 py-6 sm:py-8 w-full min-h-screen space-y-6 sm:space-y-8 bg-steel-base font-hurme">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-steel-accent tracking-wide drop-shadow-sm">Historial y Actividad</h1>
-        <p className="text-steel-muted text-sm mt-1">Visualiza tu constancia anual y selecciona un día para ver los detalles.</p>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-steel-accent tracking-wide drop-shadow-sm">Historial y Actividad</h1>
+          <p className="text-steel-muted text-sm mt-1">Visualiza tu constancia anual y selecciona un día para ver los detalles.</p>
+        </div>
+
+        {/* Pestañas de selección de año */}
+        <div className="flex flex-wrap gap-2 bg-steel-surface p-1.5 rounded-xl border border-steel-border self-start sm:self-auto">
+          {availableYears.map((year) => (
+            <button
+              key={year}
+              onClick={() => setSelectedYear(year)}
+              className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                selectedYear === year
+                  ? 'bg-steel-accent text-steel-base shadow-md'
+                  : 'text-steel-muted hover:text-steel-text hover:bg-steel-surface-light'
+              }`}
+            >
+              {year}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="p-4 sm:p-6 rounded-xl border shadow-xl bg-steel-surface border-steel-border">
         <h3 className="text-sm font-bold text-steel-muted mb-6">
-          {totalYearWorkouts} entrenamientos registrados en el último año
+          {yearWorkoutsCount} entrenamientos registrados en el año {selectedYear}
         </h3>
 
         <div ref={scrollContainerRef} className="overflow-x-auto pb-4">
-          <div className="min-w-[750px]">
+          <div className="min-w-[850px]">
             <div className="relative h-5 text-xs text-steel-muted mb-2 pl-7">
               {monthsHeader.map((m, idx) => {
                 const leftPosition = m.weekIndex * 20; 
@@ -185,9 +231,9 @@ export const WorkoutsHistoryView: React.FC = () => {
                       return (
                         <div
                           key={dIdx}
-                          onClick={() => setSelectedDate(day.dateStr)}
-                          title={`${day.dateStr}: ${exerciseCount} ejercicios realizados`}
-                          className={`w-3.5 h-3.5 rounded-sm transition-all cursor-pointer ${getIntensityClass(day.workoutsList, isSelected)}`}
+                          onClick={() => day.isCurrentYear && setSelectedDate(day.dateStr)}
+                          title={day.isCurrentYear ? `${day.dateStr}: ${exerciseCount} ejercicios realizados` : ''}
+                          className={`w-3.5 h-3.5 rounded-sm transition-all ${day.isCurrentYear ? 'cursor-pointer' : ''} ${getIntensityClass(day.workoutsList, isSelected, day.isCurrentYear)}`}
                         />
                       );
                     })}
