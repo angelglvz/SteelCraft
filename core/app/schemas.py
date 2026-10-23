@@ -5,7 +5,7 @@ from decimal import Decimal
 from uuid import UUID
 
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 from app.models import UserRole
 from app.models import LoadType, MuscleRole
@@ -20,18 +20,18 @@ class UserBase(BaseModel):
 
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str
-    username: Optional[str] = None
+    password: str = Field(..., min_length=8, max_length=128, description="La contraseña debe tener al menos 8 caracteres")
+    username: Optional[str] = Field(None, min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_-]+$")
 
 class UserUpdate(BaseModel):
-    username: Optional[str] = None
+    username: Optional[str] = Field(None, min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_-]+$")
     birth_date: Optional[date] = None
 
 class UserResponse(UserBase):
     id: UUID
     username: Optional[str] = None
     role: UserRole
-    avatar_key: Optional[str] = None
+    avatar_key: Optional[str] = Field(None, max_length=255)
     birth_date: Optional[date] = None
     created_at: datetime
 
@@ -47,10 +47,11 @@ class Token(BaseModel):
 class TokenPayload(BaseModel):
     sub: UUID | None = None
 
+# --- MUSCLE SCHEMAS ---
 class MuscleBase(BaseModel):
-    slug: str
-    name: str
-    parent_id: int | None = None
+    slug: str = Field(..., min_length=2, max_length=50, pattern=r"^[a-z0-9-]+$")
+    name: str = Field(..., min_length=2, max_length=100)
+    parent_id: int | None = Field(None, gt=0)
 
 class MuscleCreate(MuscleBase):
     pass
@@ -61,17 +62,18 @@ class MuscleResponse(MuscleBase):
     model_config = ConfigDict(from_attributes=True)
 
 class ExerciseMuscleLink(BaseModel):
-    muscle_id: int
+    muscle_id: int = Field(..., gt=0)
     role: MuscleRole
 
     model_config = ConfigDict(from_attributes=True)
 
+# --- EXERCISE SCHEMAS ---
 class ExerciseCreate(BaseModel):
-    slug: str
-    name: str
+    slug: str = Field(..., min_length=2, max_length=100, pattern=r"^[a-z0-9-]+$")
+    name: str = Field(..., min_length=2, max_length=150)
     load_type: LoadType = LoadType.OTHER
     is_active: bool = True
-    muscles: list[ExerciseMuscleLink] = []  # Lista opcional para asociar músculos principales/secundarios al crear
+    muscles: list[ExerciseMuscleLink] = Field(default=[], max_length=20)  # Límite razonable de músculos asociados
 
 class ExerciseResponse(BaseModel):
     id: int
@@ -84,6 +86,7 @@ class ExerciseResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+# --- BODY MEASUREMENT SCHEMAS ---
 class BodyMeasurementBase(BaseModel):
     measured_at: datetime
     weight_kg: Decimal | None = Field(None, ge=Decimal("20.0"), le=Decimal("500.0"))
@@ -91,17 +94,9 @@ class BodyMeasurementBase(BaseModel):
     body_fat_pct: Decimal | None = Field(None, ge=Decimal("1.0"), le=Decimal("75.0"))
     source: DataSource = DataSource.MANUAL
 
-    @field_validator("weight_kg", "height_cm", "body_fat_pct", mode="after")
-    @classmethod
-    def validate_at_least_one(cls, v, info):
-        # Nota: La validación completa cruzada se realiza a nivel de base de datos con el CHECK constraint,
-        # pero podemos asegurar que al menos los campos tengan sentido lógico.
-        return v
-
 
 class BodyMeasurementCreate(BodyMeasurementBase):
-    """Esquema para registrar una nueva medida corporal. 
-    El user_id se asignará automáticamente a partir del token del usuario autenticado."""
+    """Esquema para registrar una nueva medida corporal."""
     pass
 
 
@@ -112,12 +107,13 @@ class BodyMeasurementResponse(BodyMeasurementBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+# --- WORKOUT & SET SCHEMAS ---
 class SetLogCreate(BaseModel):
-    set_number: int = Field(..., ge=1)
-    reps: int = Field(..., ge=0, le=500)
-    weight_kg: Decimal | None = Field(None, ge=Decimal("0.0"))
-    extra_kg: Decimal | None = Field(None, ge=Decimal("0.0"))
-    assist_kg: Decimal | None = Field(None, gt=Decimal("0.0"))
+    set_number: int = Field(..., ge=1, le=100)
+    reps: int = Field(..., ge=0, le=1000)
+    weight_kg: Decimal | None = Field(None, ge=Decimal("0.0"), le=Decimal("2000.0"))
+    extra_kg: Decimal | None = Field(None, ge=Decimal("0.0"), le=Decimal("500.0"))
+    assist_kg: Decimal | None = Field(None, ge=Decimal("0.0"), le=Decimal("500.0"))
     rpe: Decimal | None = Field(None, ge=Decimal("1.0"), le=Decimal("10.0"))
 
 class SetLogResponse(SetLogCreate):
@@ -127,10 +123,10 @@ class SetLogResponse(SetLogCreate):
 
 
 class WorkoutExerciseCreate(BaseModel):
-    exercise_id: int
-    position: int = Field(..., ge=1)
-    notes: str | None = None
-    sets: list[SetLogCreate] = []
+    exercise_id: int = Field(..., gt=0)
+    position: int = Field(..., ge=1, le=100)
+    notes: str | None = Field(None, max_length=500)
+    sets: list[SetLogCreate] = Field(default=[], max_length=50)
 
 
 class WorkoutExerciseResponse(BaseModel):
@@ -147,9 +143,17 @@ class WorkoutCreate(BaseModel):
     performed_on: date
     started_at: datetime | None = None
     ended_at: datetime | None = None
-    notes: str | None = None
+    notes: str | None = Field(None, max_length=1000)
     source: DataSource = DataSource.MANUAL
-    exercises: list[WorkoutExerciseCreate] = []
+    exercises: list[WorkoutExerciseCreate] = Field(default=[], max_length=50)
+
+    @model_validator(mode="after")
+    def validate_workout_times(self) -> "WorkoutCreate":
+        """Valida que si existen ambas horas, la de finalización sea estrictamente posterior a la de inicio."""
+        if self.started_at and self.ended_at:
+            if self.ended_at <= self.started_at:
+                raise ValueError("La hora de finalización (ended_at) debe ser posterior a la de inicio (started_at).")
+        return self
 
 
 class WorkoutResponse(BaseModel):
